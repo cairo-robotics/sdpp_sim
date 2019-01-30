@@ -11,6 +11,9 @@ find_package(catkin REQUIRED COMPONENTS
   gazebo_ros_control
   roscpp
   rospy
+  std_msgs
+  geometry_msgs
+  message_generation
 )
 
 find_package(gazebo REQUIRED)
@@ -20,6 +23,10 @@ include_directories(${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS} ${GAZEBO_INCLUDE
 
 list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
 
+add_service_files(
+  FILES
+  set_goal.srv
+  )
 
 add_library(${PROJECT_NAME} src/simple_world_plugin.cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})

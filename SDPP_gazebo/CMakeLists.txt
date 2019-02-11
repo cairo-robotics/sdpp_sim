@@ -16,6 +16,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
+
+
 find_package(gazebo REQUIRED)
 
 link_directories(${GAZEBO_LIBRARY_DIRS})
@@ -23,15 +25,9 @@ include_directories(${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS} ${GAZEBO_INCLUDE
 
 list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
 
-add_service_files(
-  FILES
-  set_goal.srv
-  )
-
-add_library(${PROJECT_NAME} src/simple_world_plugin.cpp)
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
 
 add_library(model_walk SHARED src/model_walk.cpp)
+#add_dependencies(model_walk ${catkin_EXPORTED_TARGETS})
 target_link_libraries(model_walk ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
 
 
@@ -46,5 +42,4 @@ include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
 )
-
 

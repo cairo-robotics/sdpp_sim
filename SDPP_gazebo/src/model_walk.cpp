@@ -3,6 +3,7 @@
 #include <gazebo/physics/physics.hh>
 #include <gazebo/common/common.hh>
 #include <ignition/math/Vector3.hh>
+#include <iostream>
 
 #include <thread>
 #include "ros/ros.h"
@@ -10,7 +11,6 @@
 #include "ros/subscribe_options.h"
 #include "std_msgs/Float32.h"
 #include "geometry_msgs/Pose.h"
-#include "sdpp_gazebo/set_goal.h"
 
 
 #include <iostream>
@@ -29,26 +29,24 @@ namespace gazebo
 			this->updateConnection = event::Events::ConnectWorldUpdateBegin(
 					std::bind(&ModelWalk::OnUpdate, this));
 
-
+            this->WalkVel = (0, 0, 0);
 
 			if (!ros::isInitialized())
 			{
 			  int argc = 0;
 			  char **argv = NULL;
-			  ros::init(argc, argv, "gazebo_walker_node",
+			  ros::init(argc, argv, "gazebo_client",
 			      ros::init_options::NoSigintHandler);
 			}
 
 			// Create our ROS node. This acts in a similar manner to
 			// the Gazebo node
-			this->rosNode.reset(new ros::NodeHandle("gazebo_walker_node"));
+			this->rosNode.reset(new ros::NodeHandle("gazebo_client"));
 
 
-			this->rosServ = n.advertiseService("test", &ModelWalk::onService);
-			/*
 			// Create a named topic, and subscribe to it.
 			ros::SubscribeOptions so =
-				ros::SubscribeOptions::create<std_msgs::Float32>(
+				ros::SubscribeOptions::create<geometry_msgs::Pose>(
 			    "/" + this->model->GetName() + "/walk_goal",
 				1,
 			    boost::bind(&ModelWalk::OnRosMsg, this, _1),
@@ -57,61 +55,51 @@ namespace gazebo
 			this->rosSub = this->rosNode->subscribe(so);
 
 			// Spin up the queue helper thread.
-			this->rosQueueThread =
-			  std::thread(std::bind(&ModelWalk::QueueThread, this));*/
+            this->rosQueueThread =
+                std::thread(std::bind(&ModelWalk::QueueThread, this));
+
+
 		}
 
 		public: void OnUpdate()
-		{	
-
-			const math::Pose curr_pose = this->model->GetWorldPose();
-			
-			//std::cout << curr_pose.pos << std::endl;
-			
-			if(curr_pose.pos[0] <= 10 ){
-				//appply a small linear velocity to the model.
-				this->model->SetLinearVel(ignition::math::Vector3d(.3, 0, 0));
-			}
-			else{
-				this->model->SetLinearVel(ignition::math::Vector3d(0, 0, 0));
-			}
-
-			math::Box bounding = this->model->GetBoundingBox();
-			//std::cout << bounding << std::endl;
-		}
-
-		public: void OnRosMsg(const std_msgs::Float32ConstPtr &_msg)
 		{
-		  std::cout << _msg->data << std::endl;
-		}
 
-		public: void onService(sdpp_gazebo::set_goal::Request &req,
-							   sdpp_gazebo::set_goal::Request &req){
+			this->model->SetLinearVel(WalkVel);
 
-			res.plan_success = "test";
-		}
-
-		private: void QueueThread()
-		{
-		  static const double timeout = 0.01;
-		  while (this->rosNode->ok())
-		  {
-		    this->rosQueue.callAvailable(ros::WallDuration(timeout));
-		  }
 		}
 
 
+        public: void OnRosMsg(const geometry_msgs::Pose::ConstPtr& msg){
+
+
+            this->WalkVel.Set(msg->position.x, msg->position.y, 0);
+
+
+        }
+
+        // ros thread queue
+        private: void QueueThread()
+        {
+          static const double timeout = 0.01;
+          while (this->rosNode->ok())
+          {
+            this->rosQueue.callAvailable(ros::WallDuration(timeout));
+          }
+        }
+
+        // where to store incoming pose data
+        private: math::Pose PoseHeading;
+
+        // where to store incoming Vel data
+        private: ignition::math::Vector3d WalkVel;
 
 		// POinter to the model
 		private: physics::ModelPtr model;
 
 		// Pointer to the udpate event connection
 		private: event::ConnectionPtr updateConnection;
-
-		// desired goal pose
-		public: std_msgs::Float32 goal_pose;
 		
-		/// \brief A node use for ROS transport
+		// A node use for ROS transport
 		private: std::unique_ptr<ros::NodeHandle> rosNode;
 
 		//a ros service brief

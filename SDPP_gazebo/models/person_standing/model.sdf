@@ -2,6 +2,7 @@
 <sdf version="1.5">
   <model name="person_standing">
     <link name="link">
+    <gravity>0</gravity>
       <inertial>
         <pose>0 -0.1 0.95 0 0 0</pose>
         <mass>80.0</mass>
@@ -42,5 +43,6 @@
         </geometry>
       </visual>
     </link>
+    <plugin name="model_walk" filename="libmodel_walk.so"/>
   </model>
 </sdf>

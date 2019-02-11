@@ -15,6 +15,7 @@
         <static>false</static>
         <uri>model://person_standing</uri>
       </include>
+      <!-- reference to your plugin -->
     </model>
   </world>
 </sdf>

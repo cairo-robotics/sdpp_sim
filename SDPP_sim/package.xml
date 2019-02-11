@@ -1,14 +1,11 @@
 <package format="2">
   <name>sdpp_sim</name>
   <version>0.0.0</version>
-  <description>The cob_simulation stack includes packages to work with Care-O-bot within simulation environments, e.g. gazebo.</description>
+  <description>Simulator of SDPP</description>
 
-  <maintainer email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</maintainer>
+  <maintainer email="jeve0658@colorado.edu">Jeff Venicx</maintainer>
 
   <license>Apache 2.0</license>
-
-  <url type="website">http://ros.org/wiki/cob_simulation</url>
-  <!-- <url type="bugtracker"></url> -->
 
   <buildtool_depend>catkin</buildtool_depend>
   <exec_depend>sdpp_gazebo</exec_depend>

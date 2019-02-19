@@ -19,6 +19,12 @@ find_package(catkin REQUIRED COMPONENTS
 
 
 find_package(gazebo REQUIRED)
+catkin_package(
+    CATKIN_DEPENDS
+    gazebo_ros_map
+    )
+catkin_python_setup()
+
 
 link_directories(${GAZEBO_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS} ${GAZEBO_INCLUDE_DIRS})
@@ -26,7 +32,7 @@ include_directories(${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS} ${GAZEBO_INCLUDE
 list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
 
 
-add_library(model_walk SHARED src/model_walk.cpp)
+add_library(model_walk SHARED plugin/model_walk.cpp)
 #add_dependencies(model_walk ${catkin_EXPORTED_TARGETS})
 target_link_libraries(model_walk ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
 

@@ -16,7 +16,7 @@ class WalkingPerson(HeadingMap):
 
 	def __init__(self, map_meta_data, agent_name):
 
-		#object members
+		# object members
 		self.agent = agent_name
 		self.MapMetaData = map_meta_data
 		self.rate = rospy.Rate(10)
@@ -24,9 +24,10 @@ class WalkingPerson(HeadingMap):
 		self.walk_pose = Pose()
 		self.goal_coord = (4, 5)
 
-		#interfaces
+		# interfaces
 		pub_topic = "/" + agent_name + "/walk_goal"
 		self.wlk_cmd_pub = rospy.Publisher(pub_topic, Pose, queue_size=1)
+
 		rospy.wait_for_service("/gazebo/get_model_state")
 		self.get_state_srv = rospy.ServiceProxy("/gazebo/get_model_state", GetModelState)
 		rospy.loginfo("walking_person GET_model_state service active")
@@ -71,6 +72,7 @@ class WalkingPerson(HeadingMap):
 
 		self.agent_state = self.get_state_srv(self.agent, "")
 
+		#publish in tf tree
 		self.model_state_to_tf(self.agent_state)
 
 		x = int(self.agent_state.pose.position.x)

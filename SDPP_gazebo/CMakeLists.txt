@@ -21,7 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(gazebo REQUIRED)
 catkin_package(
     CATKIN_DEPENDS
-    gazebo_ros_map
+    gazebo_ros
     )
 catkin_python_setup()
 

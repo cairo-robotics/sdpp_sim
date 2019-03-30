@@ -30,7 +30,6 @@ class PredictiveCostMap(object):
 
         #inlcude vector graph
 
-
     def gaussian_at_loc(self, mu, eps):
 
         x, y = np.mgrid[-10:10:.1, -10:10:.1]

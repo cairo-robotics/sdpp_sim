@@ -1,0 +1,22 @@
+<launch>
+    <env name="GAZEBO_MODEL_PATH" value="$(find movo_gazebo)/models:$(optenv GAZEBO_MODEL_PATH)" />
+    
+    <include file="$(find movo_gazebo)/launch/movo.launch">
+        <arg name="world" value="$(find sdpp_gazebo)/worlds/sdpp_base.world"/>
+        <arg name="limited" default="false"/>
+        <arg name="paused" default="true"/>
+        <arg name="gui" default="true"/>
+    </include>
+
+
+    <!-- launch moveit servers -->
+    <node pkg="sdpp_gazebo" type="timed_roslaunch"
+    	args="10 roslaunch movo_bringup movo_moveit.launch"
+    	name="movo_moveit_bringup" output="screen"/>
+
+    <!-- init movo arms -->
+    <node pkg="sdpp_gazebo" type="timed_roslaunch"
+    	args="35 rosrun movo_gazebo init_sim"
+    	name="init_movo_arms" output="screen"/>
+
+</launch>

@@ -1,0 +1,5 @@
+<launch>
+
+    <param name="robot_description" textfile="$(find human_agent_description)/config/person.urdf" />
+
+</launch>

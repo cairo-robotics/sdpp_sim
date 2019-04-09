@@ -1,18 +1,16 @@
 #!/usr/bin/env python
 
+import rospy
+import tf
 import math
 import numpy as np
 from scipy.stats import multivariate_normal
 
-import rospy
-import tf
+from gazebo_msgs.srv import GetModelState,SetModelState
 
 from nav_msgs.msg import OccupancyGrid, MapMetaData
 from gazebo_msgs.msg import ModelStates
 from geometry_msgs.msg import Pose
-
-from gazebo_msgs.srv import GetModelState,SetModelState
-
 
 
 class HeadingMap(object):
@@ -134,19 +132,16 @@ class PredictiveCostMap(object):
         #meta data
         self.goal_points = [[4, 5], [4, 2]]
         self.MapMetaData = map_meta_data
-        self.agent_topic = agent
-        self.parent_frame = parent
+        self.agent = agent
+        self.parent = parent
 
         #initialize grid
         self.occupancy_grid = OccupancyGrid()
         self.occupancy_grid.info = self.MapMetaData
-        self.occupancy_grid.header.frame_id = self.parent_frame
-
-        #shortest path graphs
-        #for point in self.goal_points:
+        self.occupancy_grid.header.frame_id = self.parent
 
 
-
+        #inlcude vector graph
 
     def gaussian_at_loc(self, mu, eps):
 
@@ -155,19 +150,60 @@ class PredictiveCostMap(object):
         rv = multivariate_normal([mu[0], mu[1]], eps)
         some_grid = rv.pdf(pos)
         some_grid /= np.max(np.abs(some_grid))
-        some_grid *= 100
+        some_grid *= 50
         #change this to a return statement
         self.map = some_grid.astype(int).T
 
+    def forward_predict(self, loc, goal, scale):
+
+        m = (loc[1] - goal[1])/(loc[0] - goal[0])
+        increment = (goal[0] - loc[0])/50
+
+
+        point_array = []
+        for i in range(0, 50):
+            x = loc[0] + i*increment
+            y = loc[1] + (i*increment)*m
+
+            point = (x, y)
+            point_array.append(point) 
+
+        x, y = np.mgrid[-10:10:.1, -10:10:.1]
+        pos = np.dstack((x, y))
+
+        rv_self = multivariate_normal([loc[0], loc[1]], np.array([[.1, 0], [0, .1]]))
+
+        some_grid = rv_self.pdf(pos)
+
+        i = 1
+        for point in point_array:
+            xxyy = .05 + (.002*i)
+        
+            rv = multivariate_normal([point[0], point[1]], np.array([[xxyy, 0], [0, xxyy]]))
+            some_grid += (rv.pdf(pos) *(50/i))
+            some_grid /= np.max(np.abs(some_grid))
+            some_grid *= scale
+            i += 1
+
+
+        self.map += some_grid.astype(int).T
+
     def update_step(self):
 
-        if self.tf_listener.frameExists("person1"):
-            t = self.tf_listener.getLatestCommonTime("person1", "map")
-            trans, rot = self.tf_listener.lookupTransform('/map', '/person1', t)
+        if self.tf_listener.frameExists(self.agent):
+            t = self.tf_listener.getLatestCommonTime(self.agent, self.parent)
+            trans, rot = self.tf_listener.lookupTransform(self.parent, self.agent, t)
+
             self.gaussian_at_loc(np.array([trans[0], trans[1]]), np.array([[.1, 0], [0, .1]]))
+
+            self.forward_predict(trans, [4, 5], 40 )
+            self.forward_predict(trans, [4, 0], 5)
+
+
             self.occupancy_grid.header.stamp = t
-            self.occupancy_grid.data = test.map.flatten('C').tolist()
+            self.occupancy_grid.data = self.map.flatten('C').tolist()
             self.grid_pub.publish(self.occupancy_grid)
-            #self.tf_listener.LookupTwist('/map', '/person1', t)
+            self.trans = trans
+
         else:
             print("tf frames missing")

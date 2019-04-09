@@ -102,6 +102,6 @@ class WalkingPerson(HeadingMap):
 												(0.0, 0.0, 0.0, 1.0),
 												rospy.Time.now(),
 												self.agent,
-												"map")
+												"odom")
 		except ValueError:
 			rospy.logwarn("tf topic not found")

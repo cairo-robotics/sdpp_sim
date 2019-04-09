@@ -1,6 +1,9 @@
 <launch>
     <env name="GAZEBO_MODEL_PATH" value="$(find movo_gazebo)/models:$(optenv GAZEBO_MODEL_PATH)" />
     
+    <env name="MOVO_HAS_KINOVA_ARM_6DOF" value="false" />
+    <env name="MOVO_HAS_KINOVA_ARM_7DOF" value="true" />
+
     <include file="$(find movo_gazebo)/launch/movo.launch">
         <arg name="world" value="$(find sdpp_gazebo)/worlds/sdpp_base.world"/>
         <arg name="limited" default="false"/>
@@ -16,7 +19,7 @@
 
     <!-- init movo arms -->
     <node pkg="sdpp_gazebo" type="timed_roslaunch"
-    	args="35 rosrun movo_gazebo init_sim"
+    	args="40 rosrun movo_gazebo init_sim"
     	name="init_movo_arms" output="screen"/>
 
 </launch>

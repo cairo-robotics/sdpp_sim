@@ -9,7 +9,6 @@ def sdpp_map_meta(param_name):
     try:
         param_data = rospy.get_param(param_name)
 
-        map_meta.map_load_time = 0
         map_meta.resolution = param_data['resolution']
         map_meta.width = param_data['width']
         map_meta.height = param_data['height']

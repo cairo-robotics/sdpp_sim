@@ -8,14 +8,5 @@
     <include>
       <uri>model://sun</uri>
     </include>
-
-    <model name="person_1">
-      <pose> -5 0 .001  0 0 1.57</pose>
-      <include>
-        <static>false</static>
-        <uri>model://person_standing</uri>
-      </include>
-      <!-- reference to your plugin -->
-    </model>
   </world>
 </sdf>

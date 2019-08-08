@@ -2,6 +2,7 @@ object_list:
   - person
   - tie
   - bottle
+  - cup
   - glass
   - bowl
   - chair

@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     object_list = rospy.get_param("object_list")
 
-    #object_list= ["objA", "objB", "objC", "objD", "j", "s", "d", "k"]
+    #object_list= ["cup", "bottle", "objC", "objD", "j", "s", "d", "k"]
 
     test = ObjectAssociation.empty_inference_obj(object_list)
 

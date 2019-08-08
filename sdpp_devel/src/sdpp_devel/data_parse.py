@@ -6,7 +6,7 @@ import random
 import matplotlib.pyplot as plt
 from sklearn import mixture
 
-from spencer_tracking_msgs.msg import TrackedPersons
+#from spencer_tracking_msgs.msg import TrackedPersons
 from sensor_msgs.msg import CompressedImage
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Int32

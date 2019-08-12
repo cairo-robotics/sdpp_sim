@@ -1,3 +1,5 @@
+
+
 <launch>
   <arg name="x_pos" default="-2.0"/>
   <arg name="y_pos" default="-0.5"/>
@@ -26,7 +28,7 @@
 
     <!-- dummy global map -->
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
-  
+
   <!--fake nav launch -->
   <node pkg="sdpp_human_navigation" type="timed_roslaunch"
           args="10 roslaunch sdpp_human_navigation fake_nav.launch"

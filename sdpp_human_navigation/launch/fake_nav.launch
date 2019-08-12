@@ -1,26 +1,28 @@
 <launch>
+
   <!-- Arguments -->
   <arg name="model" default="waffle_pi"/>
   <arg name="slam_methods" default="gmapping" doc="slam type [gmapping, cartographer, hector, karto, frontier_exploration]"/>
   <arg name="configuration_basename" default="turtlebot3_lds_2d.lua"/>
   <arg name="open_rviz" default="true"/>
   <arg name="move_forward_only" default="true"/>
+  <arg name="namespace" default="test"/>
 
+  <group ns="$(arg namespace">
+    <!-- TurtleBot3 -->
+    <include file="$(find turtlebot3_bringup)/launch/turtlebot3_remote.launch">
+    </include>
 
-  <!-- TurtleBot3 -->
-  <include file="$(find turtlebot3_bringup)/launch/turtlebot3_remote.launch">
-  </include>
+    <!-- fake localization -->
+    <node pkg="fake_localization" type="fake_localization" name="fake_localization">
+      <param name="base_frame_id"   type="string" value="base_link" />
+    </node>
 
-  <!-- fake localization -->
-  <node pkg="fake_localization" type="fake_localization" name="fake_localization">
-    <param name="base_frame_id"   type="string" value="base_link" />
-  </node>
-
-
-  <!-- move_base -->
-  <include file="$(find sdpp_human_navigation)/launch/move_base.launch">
-    <arg name="move_forward_only" value="$(arg move_forward_only)"/>
-  </include>
+    <!-- move_base -->
+    <include file="$(find sdpp_human_navigation)/launch/move_base.launch">
+      <arg name="move_forward_only" value="$(arg move_forward_only)"/>
+    </include>
+  </group>
 
   <!-- rviz -->
   <group if="$(arg open_rviz)">

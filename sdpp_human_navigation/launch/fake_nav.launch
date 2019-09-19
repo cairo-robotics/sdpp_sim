@@ -6,9 +6,7 @@
   <arg name="configuration_basename" default="turtlebot3_lds_2d.lua"/>
   <arg name="open_rviz" default="true"/>
   <arg name="move_forward_only" default="true"/>
-  <arg name="namespace" default="test"/>
 
-  <group ns="$(arg namespace">
     <!-- TurtleBot3 -->
     <include file="$(find turtlebot3_bringup)/launch/turtlebot3_remote.launch">
     </include>
@@ -22,7 +20,6 @@
     <include file="$(find sdpp_human_navigation)/launch/move_base.launch">
       <arg name="move_forward_only" value="$(arg move_forward_only)"/>
     </include>
-  </group>
 
   <!-- rviz -->
   <group if="$(arg open_rviz)">

@@ -8,11 +8,9 @@
 
     <env name="TURTLEBOT3_MODEL" value="waffle_pi" />
 
-    <group ns="test">
-        <param name="robot_description" command="$(find xacro)/xacro --inorder $(find sdpp_human_description)/urdf/turtlebot3_waffle_pi.urdf.xacro" />
-        <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"  args="-urdf -model human_agent -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
-    </group>
-     <!--fake nav launch -->
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find sdpp_human_description)/urdf/turtlebot3_waffle_pi.urdf.xacro" />
+    <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"  args="-urdf -model human_agent -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
+]     <!--fake nav launch -->
   <node pkg="sdpp_human_navigation" type="timed_roslaunch"
           args="10 roslaunch sdpp_human_navigation fake_nav.launch"
           name="init_nav" output="screen"/>

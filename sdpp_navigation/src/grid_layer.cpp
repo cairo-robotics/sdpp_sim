@@ -28,9 +28,8 @@ void GridLayer::onInitialize()
 
   //boost::shared_ptr <message_filters::Subscribers<sensor_msgs::LaserScan>
   //  > sub(new message_filters::Subscriber<sensor_msgs::LaserScan>(g_nh, topic, 50));
-  ros::Subscriber sub = nh.subscribe("/test", 1000, &GridLayer::pointCallback, this);
-  ros::spin();
-
+  sub = nh.subscribe("/test", 1000, &GridLayer::pointCallback, this);
+    ROS_INFO("subscriber initialized");
    //sub(new message_filters::Subscriber<sensor_msgs::LaserScan>(nh, "test", 50));
 }
 

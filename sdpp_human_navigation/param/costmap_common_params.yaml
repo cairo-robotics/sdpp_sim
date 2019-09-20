@@ -10,3 +10,6 @@ cost_scaling_factor: 3.0
 map_type: costmap
 observation_sources: scan
 scan: {sensor_frame: human_0/base_scan, data_type: LaserScan, topic: scan, marking: true, clearing: true}
+
+plugins:
+  - {name: grid_layer, type: "simple_layer_namespace::GridLayer", output: "screen"}

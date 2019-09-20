@@ -3,6 +3,7 @@
 
 import rospy
 
+
 from nav_msgs.msg import OccupancyGrid
 from nav_msgs.srv import GetMap
 
@@ -11,6 +12,30 @@ import numpy as np
 import matplotlib as mpl
 from matplotlib import pyplot
 
+REWARD_LOC = (175, 200)
+REWARD_VAL = 100
+
+GAMMA = .99
+
+
+
+def transitionFunction():
+    pass
+def rewardFunction(s, a):
+    pass
+
+
+
+def ValueIteration(policy):
+    k = 0
+
+
+
+
+
+def valueIteration(P, nS, nA, gamma=0.9, tol=1e-3):
+    pass
+    #value_function =
 
 
 
@@ -20,7 +45,7 @@ if __name__ == '__main__':
 
     rospy.wait_for_service('/static_map')
 
-    print "got map"
+    print("got map")
 
     mapProxy = rospy.ServiceProxy('/static_map', GetMap)
 
@@ -30,7 +55,7 @@ if __name__ == '__main__':
     except rospy.ServiceException as exc:
         print("service did not work")
 
-    print occupancyGridMsg.map.info
+    print(occupancyGridMsg.map.info)
 
     mapInfo = occupancyGridMsg.map.info
 
@@ -48,12 +73,12 @@ if __name__ == '__main__':
             elif msgValue == 100:
                 numpyOccupancyGrid[i][j] = -1
             else:
-                print "unknown case" + str(msgValue)
+                print("unknown case" + str(msgValue))
 
 
 
 
-    print mapInfo.width
+    print(mapInfo.width)
     numpyOccupancyGrid[20][20] = 100
 
 
@@ -63,6 +88,3 @@ if __name__ == '__main__':
     pyplot.colorbar(img)
 
     pyplot.show()
-
-
-

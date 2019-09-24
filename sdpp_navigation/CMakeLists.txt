@@ -125,8 +125,8 @@ include_directories(
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/sdpp_navigation.cpp
 # )
-add_library(simple_layer src/simple_layer.cpp)
 add_library(grid_layer src/grid_layer.cpp)
+add_library(costmap_injection_layer plugins/costmap_injection_layer.cpp)
 
 
 ## Add cmake target dependencies of the library

@@ -11,5 +11,4 @@ map_type: costmap
 observation_sources: scan
 scan: {sensor_frame: human_0/base_scan, data_type: LaserScan, topic: scan, marking: true, clearing: true}
 
-plugins:
-  - {name: costmap_injection_layer, type: "costmap_injection_namespace::CostmapInjectionLayer", output: "screen"}
+

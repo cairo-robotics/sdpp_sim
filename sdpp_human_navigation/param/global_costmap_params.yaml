@@ -8,3 +8,5 @@ global_costmap:
 
   static_map: true
  
+plugins:
+  - {name: costmap_injection_layer, type: "costmap_injection_namespace::CostmapInjectionLayer", output: "screen"}

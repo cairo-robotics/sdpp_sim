@@ -13,7 +13,6 @@
 
 namespace costmap_injection_namespace
 {
-
 class CostmapInjectionLayer : public costmap_2d::Layer, public costmap_2d::Costmap2D
 {
 public:
@@ -33,6 +32,7 @@ public:
 private:
 
   ros::Subscriber sub;
+  nav_msgs::OccupancyGrid grid;
   void reconfigureCB(costmap_2d::GenericPluginConfig &config, uint32_t level);
   dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig> *dsrv_;
 

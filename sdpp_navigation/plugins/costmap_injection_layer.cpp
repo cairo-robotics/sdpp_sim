@@ -18,7 +18,7 @@ void CostmapInjectionLayer::onInitialize()
   ros::NodeHandle nh("~/" + name_);
   current_ = true;
   default_value_ = NO_INFORMATION;
-  matchSize();
+  //matchSize();
 
   //dynamic reconfigure server
   dsrv_ = new dynamic_reconfigure::Server<costmap_2d::GenericPluginConfig>(nh);
@@ -35,10 +35,8 @@ void CostmapInjectionLayer::matchSize()
 {
   Costmap2D* master = layered_costmap_->getCostmap();
 
-
   resizeMap(master->getSizeInCellsX(), master->getSizeInCellsY(), master->getResolution(),
             master->getOriginX(), master->getOriginY());
-
 }
 
 
@@ -48,7 +46,14 @@ void CostmapInjectionLayer::reconfigureCB(costmap_2d::GenericPluginConfig &confi
 }
 
 void CostmapInjectionLayer::costmapCallback(const nav_msgs::OccupancyGrid::ConstPtr& message){
-    ROS_INFO("I heard costmap it");
+
+    grid = *message;
+
+    //for(std::vector<signed char>::iterator it = grid.data.begin(); it != grid.data.end(); it++)
+    //    std::cout << ' ' << *it;
+
+
+    ROS_INFO("%s", message->header.frame_id.c_str());
 }
 
 void CostmapInjectionLayer::pointCallback(const geometry_msgs::Point::ConstPtr& message){
@@ -64,35 +69,37 @@ void CostmapInjectionLayer::updateBounds(double robot_x, double robot_y, double 
     return;
 
 
-  //double mark_x = robot_x + cos(robot_yaw), mark_y = robot_y + sin(robot_yaw);
-  double mark_x = 1, mark_y = 1;
-
-  unsigned int mx;
-  unsigned int my;
-  if(worldToMap(mark_x, mark_y, mx, my)){
-    setCost(mx, my, LETHAL_OBSTACLE);
-  }
-
-  *min_x = std::min(*min_x, mark_x);
-  *min_y = std::min(*min_y, mark_y);
-  *max_x = std::max(*max_x, mark_x);
-  *max_y = std::max(*max_y, mark_y);
+  *min_x = 1;
+  *min_y = 1;
+  *max_x = 100;
+  *max_y = 100;
 }
 
 void CostmapInjectionLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i,
                                           int max_j)
 {
+    //for(std::vector<signed char>::iterator it = grid.data.begin(); it != grid.data.end(); it++)
+    //    std::cout << ' ' << *it;
+
+    //std::cout << grid.data.size() << std::endl;
+
   if (!enabled_)
     return;
 
-  for (int j = min_j; j < max_j; j++)
+   if( grid.data.size() == 0)
+    return;
+
+
+  for (int j = 0; j < 200; j++)
   {
-    for (int i = min_i; i < max_i; i++)
+    for (int i = 0; i < 200; i++)
     {
       int index = getIndex(i, j);
-      if (costmap_[index] == NO_INFORMATION)
+      if (grid.data[index] == NO_INFORMATION)
         continue;
-      master_grid.setCost(i, j, costmap_[index]);
+
+      //std::cout << grid.header << std::endl;
+      master_grid.setCost(i, j, grid.data[index]);
     }
   }
 }

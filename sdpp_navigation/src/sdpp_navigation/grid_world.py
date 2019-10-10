@@ -122,71 +122,34 @@ class ValueIterationAlgo(object):
 
 
 
+def value_iteration(world, world_reward,gamma = .99):
 
-def done():
-    global world, prev_world
-    # If NaNs are in the inputs, we may get a warning. Ignore it and it won't affect the epsilon comparison because np.nan > epsilon is False
-    try:
-        diff = np.abs(world.as_array() - prev_world)
-    except RuntimeWarning:
-        pass
-    return not (diff > epsilon).any()
+    v = np.zeros(world.shape)
+    print world
+    print world.shape
+    print v.shape
 
-epsilon = 0.0001
-discount_factor = 0.9
+    max_iterations = 20
+    eps = 1e-20
 
-def part_b():
-    global world, prev_world
-    world = GridWorld(world_input)
-    prev_world = np.ones_like(world_input) # init to something other than input
-    algo = ValueIterationAlgo(discount_factor, world);
-    iter_cnt = 0
-    while(True):
-        print 'iteration {}'.format(iter_cnt).center(72, '-')
-        pprint(prev_world)
-        prev_world = world.as_array()
-        pprint(prev_world)
-        for cell in world:
-            algo.update(cell)
-        ##if done(): break
-        if iter_cnt >= 2:
-            break
+    for i in range(max_iterations):
+        prev_v = np.copy(v)
+        for i in range(0, world.shape[0]):
+            for j in range(0, world.shape[1]):
+                #value in each action
+                q_sa = [0] * np.zeros(len(nA))
+                for index, A in enumerate(nA):
+                    row_A = i + A[0]
+                    col_A = j + A[1]
+                    try:
+                        #if
+                        q_sa[index] = world_reward[i, j] + gamma * (A[2]*prev_v[row_A, col_A])
 
-        iter_cnt += 1
+                    except IndexError as error:
+                        q_sa[index] = -1
 
-    world_arr = world.as_array()
-    pprint(world_arr)
-    pprint(np.round(world_arr))
-    pprint(world.policy())
+                v[i, j] = max(q_sa)
 
-def part_c():
-    global world, prev_world
-    discount_factor = 0.9
-    while(True):
-        world = GridWorld(world_input)
-        prev_world = np.ones_like(world_input) # init to something other than input
-        algo = ValueIterationAlgo(discount_factor, world)
-        iter_cnt = 0
-        while(True):
-            print 'iteration {}, discount={}'.format(
-                iter_cnt, discount_factor).center(72, '-')
-            pprint(prev_world)
-            if done(): break
-            prev_world = world.as_array()
-            pprint(prev_world)
-            for cell in world:
-                algo.update(cell)
-            iter_cnt += 1
-        world_arr = world.as_array()
-        pprint(world_arr)
-        pprint(np.round(world_arr))
-        pprint(world.policy())
-        if world.cells[2][3].policy != 'west': break
-        discount_factor -= 0.01
-
-
-#print 'part b:'
-#part_b()
-
-#print 'part c:'
-#part_c()
+    plt.imshow(v, cmap="plasma")
+    plt.colorbar()
+    plt.show(

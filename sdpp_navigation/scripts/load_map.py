@@ -4,6 +4,8 @@ from sdpp_navigation.grid_world import GridWorld, ValueIterationAlgo
 import matplotlib.pyplot as plt
 from pprint import pprint, pformat
 from gym.envs.toy_text import discrete
+import rospy
+from nav_msgs.msg import OccupancyGrid
 
 
 from PIL import Image
@@ -11,51 +13,36 @@ import numpy as np
 
 
 
-def done():
-    global world, prev_world
-    # If NaNs are in the inputs, we may get a warning. Ignore it and it won't affect the epsilon comparison because np.nan > epsilon is False
+def done(world, prev_world):
+    epsilon = 0.00001
     try:
         diff = np.abs(world.as_array() - prev_world)
     except RuntimeWarning:
         pass
     return not (diff > epsilon).any()
 
-epsilon = 0.000001
 
-#action array
-nA = [(-1, 0, .1), (0, 1, .1), (1, 0, .8)]
+def array_to_costmap(array):
 
-def value_iteration(world, world_reward,gamma = .99):
+    CostMap= OccupancyGrid()
+    CostMap.info.resolution = .05
+    CostMap.info.width = 200
+    CostMap.info.height = 200
 
-    v = np.zeros(world.shape)
-    print world
-    print world.shape
-    print v.shape
 
-    max_iterations = 20
-    eps = 1e-20
+    max_value =255
+    min_value = 0
+    old_range = max_value-min_value
+    new_range = 100
 
-    for i in range(max_iterations):
-        prev_v = np.copy(v)
-        for i in range(0, world.shape[0]):
-            for j in range(0, world.shape[1]):
-                #value in each action
-                q_sa = [0] * np.zeros(len(nA))
-                for index, A in enumerate(nA):
-                    row_A = i + A[0]
-                    col_A = j + A[1]
-                    try:
-                        #if
-                        q_sa[index] = world_reward[i, j] + gamma * (A[2]*prev_v[row_A, col_A])
 
-                    except IndexError as error:
-                        q_sa[index] = -1
-
-                v[i, j] = max(q_sa)
-
-    plt.imshow(v, cmap="plasma")
-    plt.colorbar()
-    plt.show()
+    world_arr = array
+    world_arr_flat = np.asanyarray(world_arr).flatten()
+    world_arr_flat = world_arr_flat * (old_range / new_range)
+    world_arr_flat = world_arr_flat.astype(np.int8)
+    world_arr_flat = world_arr_flat.tolist()
+    map_tuple = tuple(world_arr_flat)
+    CostMap.data = map_tuple
 
 
 
@@ -67,6 +54,11 @@ def plot_world(world_arr):
 
 
 if __name__ == '__main__':
+
+    rospy.init_node("nav_grid")
+
+    map_pub = rospy.Publisher("/test", OccupancyGrid, queue_size = 1)
+
 
     gamma = .99
 
@@ -89,7 +81,7 @@ if __name__ == '__main__':
 
     world_arr = world.as_array()
 
-    plot_world(world_arr)
+    #plot_world(world_arr)
     algo = ValueIterationAlgo( gamma, world)
 
     iter_cnt = 0
@@ -99,7 +91,7 @@ if __name__ == '__main__':
         for cell in world:
             algo.update(cell)
 
-        if iter_cnt >= 50:
+        if iter_cnt >= 2:
             break
 
         iter_cnt += 1
@@ -107,5 +99,25 @@ if __name__ == '__main__':
 
     world_arr = world.as_array()
     plot_world(world_arr)
+    CostMap = array_to_costmap(world_arr)
+
+
+
+
+
+
+
+
+
+
+    while not rospy.is_shutdown():
+        rospy.sleep(1)
+        map_pub.publish(CostMap)
+
+
+
+
+
+
 
 

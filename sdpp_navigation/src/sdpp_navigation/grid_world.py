@@ -28,10 +28,10 @@ class GridWorld(object):
                 cell.row = row_idx
                 cell.col = col_idx
 
-                #wall
+                #white
                 if value == 255:
                     cell.value = 0
-
+                #black
                 elif value == 0:
                     cell.value = 0
                     cell.block = True
@@ -56,6 +56,10 @@ class GridWorld(object):
 
     def as_array(self):
         a = [ [cell.value for cell in row] for row in self.cells ]
+        return np.array(a)
+
+    def walls_as_array(self):
+        a = [[cell.blocks for cell in rows] for rows in self.cells]
         return np.array(a)
 
     def north(self, cell):
@@ -88,6 +92,7 @@ class GridWorld(object):
             return cell
         return n
 
+
     def __str__(self):
         return pformat(self.as_array())
     def __repr__(self): return self.__str__()
@@ -99,7 +104,9 @@ class ValueIterationAlgo(object):
         self.world = world
 
     def update(self, state):
-        if state.is_terminal or state.blocks: return
+        if state.is_terminal or state.blocks:
+            print state.blocks
+            return
         max_pv = 0 # probability * value, as used in V(s) calculation
         # Moves in NSEW order
         moves_pvs = [
@@ -108,6 +115,7 @@ class ValueIterationAlgo(object):
             0.8*self.world.east(state).value + 0.1*self.world.north(state).value + 0.1*self.world.south(state).value,
             0.8*self.world.west(state).value + 0.1*self.world.north(state).value + 0.1*self.world.south(state).value
         ]
+
         moves_directions = ['north', 'south', 'east', 'west']
         max_idx = np.argmax(moves_pvs)
         max_pv = moves_pvs[max_idx]
@@ -152,4 +160,4 @@ def value_iteration(world, world_reward,gamma = .99):
 
     plt.imshow(v, cmap="plasma")
     plt.colorbar()
-    plt.show(
+    plt.show()

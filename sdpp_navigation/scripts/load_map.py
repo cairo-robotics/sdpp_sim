@@ -44,6 +44,8 @@ def array_to_costmap(array):
     map_tuple = tuple(world_arr_flat)
     CostMap.data = map_tuple
 
+    return CostMap
+
 
 
 
@@ -58,11 +60,10 @@ if __name__ == '__main__':
     rospy.init_node("nav_grid")
 
     map_pub = rospy.Publisher("/test", OccupancyGrid, queue_size = 1)
-
-
     gamma = .99
 
     im_frame = Image.open('block_room.png')
+    im_frame.show()
     np_frame = np.array(im_frame)
     np_frame = np_frame[: , :, 0]
     print np_frame.shape
@@ -73,11 +74,22 @@ if __name__ == '__main__':
     #world_reward = np.array([[0,0,0,100], [0,0 ,0, 0], [0,0,0,0]])
 
     world = GridWorld(np_frame, 200, 200)
+
+    plot_world(world.walls_as_array())
+
     for i in range(115, 125):
         for j in range(35, 45):
             world.cells[i][j].is_terminal = True
             world.cells[i][j].value = 225
             world.cells[i][j].reward = 225
+            world.cells[i][j].blocks = True
+
+
+    assert world.cells[120][40].blocks == True
+
+
+    print world.walls_as_array()
+    #plot_world(world.walls_as_array())
 
     world_arr = world.as_array()
 
@@ -91,24 +103,16 @@ if __name__ == '__main__':
         for cell in world:
             algo.update(cell)
 
-        if iter_cnt >= 2:
+        if iter_cnt >= 1:
             break
 
         iter_cnt += 1
 
 
     world_arr = world.as_array()
-    plot_world(world_arr)
     CostMap = array_to_costmap(world_arr)
 
-
-
-
-
-
-
-
-
+    #plot_world(world_arr)
 
     while not rospy.is_shutdown():
         rospy.sleep(1)

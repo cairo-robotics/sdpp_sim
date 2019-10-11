@@ -7,6 +7,7 @@ class Cell(object):
         self.is_terminal = False
         self.policy = ''
         self.value = 0
+        self.value_prev = 0
         self.reward = 0
         self.blocks = False
 
@@ -34,7 +35,7 @@ class GridWorld(object):
                 #black
                 elif value == 0:
                     cell.value = 0
-                    cell.block = True
+                    cell.blocks = True
 
                 else:
                     cell.value = value
@@ -60,7 +61,7 @@ class GridWorld(object):
 
     def walls_as_array(self):
         a = [[cell.blocks for cell in rows] for rows in self.cells]
-        return np.array(a)
+        return np.array(a).astype(int)
 
     def north(self, cell):
         row = cell.row; col = cell.col
@@ -105,15 +106,14 @@ class ValueIterationAlgo(object):
 
     def update(self, state):
         if state.is_terminal or state.blocks:
-            print state.blocks
             return
         max_pv = 0 # probability * value, as used in V(s) calculation
         # Moves in NSEW order
         moves_pvs = [
-            0.8*self.world.north(state).value + 0.1*self.world.west(state).value + 0.1*self.world.east(state).value,
-            0.8*self.world.south(state).value + 0.1*self.world.west(state).value + 0.1*self.world.east(state).value,
-            0.8*self.world.east(state).value + 0.1*self.world.north(state).value + 0.1*self.world.south(state).value,
-            0.8*self.world.west(state).value + 0.1*self.world.north(state).value + 0.1*self.world.south(state).value
+            0.8*self.world.north(state).value_prev + 0.1*self.world.west(state).value_prev + 0.1*self.world.east(state).value_prev,
+            0.8*self.world.south(state).value_prev + 0.1*self.world.west(state).value_prev + 0.1*self.world.east(state).value_prev,
+            0.8*self.world.east(state).value_prev + 0.1*self.world.north(state).value_prev + 0.1*self.world.south(state).value_prev,
+            0.8*self.world.west(state).value_prev + 0.1*self.world.north(state).value_prev + 0.1*self.world.south(state).value_prev
         ]
 
         moves_directions = ['north', 'south', 'east', 'west']
@@ -123,6 +123,13 @@ class ValueIterationAlgo(object):
         state.value = self.discount_factor * max_pv + state.reward
         state.policy = policy
 ##        print locals()
+
+    def update_values(self, world):
+
+        for row_idx, row in enumerate(world.cells):
+            for col_idx, cell in enumerate(row):
+                cell.value_prev = cell.value
+
 
     def __str__(self):
         return pformat(self.__dict__)

@@ -3,15 +3,12 @@
 from sdpp_navigation.grid_world import GridWorld, ValueIterationAlgo
 import matplotlib.pyplot as plt
 from pprint import pprint, pformat
-from gym.envs.toy_text import discrete
 import rospy
 from nav_msgs.msg import OccupancyGrid
 
 
 from PIL import Image
 import numpy as np
-
-
 
 def done(world, prev_world):
     epsilon = 0.00001
@@ -21,7 +18,6 @@ def done(world, prev_world):
         pass
     return not (diff > epsilon).any()
 
-
 def array_to_costmap(array):
 
     CostMap= OccupancyGrid()
@@ -29,16 +25,15 @@ def array_to_costmap(array):
     CostMap.info.width = 200
     CostMap.info.height = 200
 
-
-    max_value =255
-    min_value = 0
-    old_range = max_value-min_value
     new_range = 100
 
 
     world_arr = array
     world_arr_flat = np.asanyarray(world_arr).flatten()
-    world_arr_flat = world_arr_flat * (old_range / new_range)
+    max_value = np.amax(world_arr_flat)
+    min_value = np.amin(world_arr_flat)
+    old_range = max_value-min_value
+    world_arr_flat = world_arr_flat / (old_range / new_range)
     world_arr_flat = world_arr_flat.astype(np.int8)
     world_arr_flat = world_arr_flat.tolist()
     map_tuple = tuple(world_arr_flat)
@@ -46,14 +41,10 @@ def array_to_costmap(array):
 
     return CostMap
 
-
-
-
 def plot_world(world_arr):
     plt.imshow(world_arr, cmap="plasma")
     plt.colorbar()
     plt.show()
-
 
 if __name__ == '__main__':
 
@@ -63,7 +54,7 @@ if __name__ == '__main__':
     gamma = .99
 
     im_frame = Image.open('block_room.png')
-    im_frame.show()
+    #im_frame.show()
     np_frame = np.array(im_frame)
     np_frame = np_frame[: , :, 0]
     print np_frame.shape
@@ -75,26 +66,23 @@ if __name__ == '__main__':
 
     world = GridWorld(np_frame, 200, 200)
 
-    plot_world(world.walls_as_array())
+    #plot_world(world.walls_as_array())
 
+    world.cells[150][40].reward = 500
+    world.cells[150][40].value = 500
+
+    '''
     for i in range(115, 125):
         for j in range(35, 45):
             world.cells[i][j].is_terminal = True
             world.cells[i][j].value = 225
             world.cells[i][j].reward = 225
             world.cells[i][j].blocks = True
-
-
-    assert world.cells[120][40].blocks == True
-
-
-    print world.walls_as_array()
-    #plot_world(world.walls_as_array())
+    '''
 
     world_arr = world.as_array()
 
-    #plot_world(world_arr)
-    algo = ValueIterationAlgo( gamma, world)
+    algo = ValueIterationAlgo(gamma, world)
 
     iter_cnt = 0
     while(True):
@@ -103,7 +91,9 @@ if __name__ == '__main__':
         for cell in world:
             algo.update(cell)
 
-        if iter_cnt >= 1:
+        algo.update_values(world)
+
+        if iter_cnt >= 75:
             break
 
         iter_cnt += 1
@@ -112,7 +102,8 @@ if __name__ == '__main__':
     world_arr = world.as_array()
     CostMap = array_to_costmap(world_arr)
 
-    #plot_world(world_arr)
+    #print CostMap.data
+    #plot_world(CostMap.data)
 
     while not rospy.is_shutdown():
         rospy.sleep(1)

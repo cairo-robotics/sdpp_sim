@@ -57,6 +57,7 @@ if __name__ == '__main__':
     #im_frame.show()
     np_frame = np.array(im_frame)
     np_frame = np_frame[: , :, 0]
+    np_frame = np.rot90(np_frame, 3)
     print np_frame.shape
 
 
@@ -66,10 +67,10 @@ if __name__ == '__main__':
 
     world = GridWorld(np_frame, 200, 200)
 
-    #plot_world(world.walls_as_array())
+    plot_world(world.walls_as_array())
 
-    world.cells[150][40].reward = 500
-    world.cells[150][40].value = 500
+    world.cells[40][40].reward = 500
+    world.cells[40][40].value = 500
 
     '''
     for i in range(115, 125):
@@ -93,7 +94,7 @@ if __name__ == '__main__':
 
         algo.update_values(world)
 
-        if iter_cnt >= 75:
+        if iter_cnt >= 20:
             break
 
         iter_cnt += 1

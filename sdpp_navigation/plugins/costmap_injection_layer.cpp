@@ -68,11 +68,14 @@ void CostmapInjectionLayer::updateBounds(double robot_x, double robot_y, double 
   if (!enabled_)
     return;
 
+  Costmap2D* master = layered_costmap_->getCostmap();
 
-  *min_x = 1;
-  *min_y = 1;
-  *max_x = 100;
-  *max_y = 100;
+  *min_x = 1.0;
+  *min_y = 1.0;
+  *max_x = master->getSizeInCellsX();
+  *max_y = master->getSizeInCellsY();
+
+  //std::cout << *min_x << " " << *max_x << std::endl;
 }
 
 void CostmapInjectionLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i,
@@ -83,6 +86,11 @@ void CostmapInjectionLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int 
 
     //std::cout << grid.data.size() << std::endl;
 
+    //std::cout << "min i: " << min_i << "max_i: " << max_i << std::endl;
+    //std::cout << "min j: " << min_j << "max_j: " << max_j << std::endl;
+
+
+
   if (!enabled_)
     return;
 
@@ -90,9 +98,9 @@ void CostmapInjectionLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int 
     return;
 
 
-  for (int j = 0; j < 200; j++)
+  for (int j = min_j; j < max_j; j++)
   {
-    for (int i = 0; i < 200; i++)
+    for (int i = min_i; i < max_i; i++)
     {
       int index = getIndex(i, j);
       if (grid.data[index] == NO_INFORMATION)

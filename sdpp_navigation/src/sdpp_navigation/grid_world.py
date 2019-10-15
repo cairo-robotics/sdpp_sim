@@ -17,12 +17,11 @@ class Cell(object):
 
 
 class GridWorld(object):
-    def __init__(self, array, world_bounds_rows, world_bounds_cols):
-        self.world_bounds_rows = world_bounds_rows
-        self.world_bounds_cols = world_bounds_cols
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
 
         cells = []
-        for row_idx, row in enumerate(array):
+        for row_idx, row in enumerate(self.array):
             cells.append([])
             for col_idx, value in enumerate(row):
                 cell = Cell()
@@ -42,8 +41,8 @@ class GridWorld(object):
                     cell.reward = value
 
                 cells[row_idx].append(cell)
-            assert len(cells[row_idx]) == world_bounds_cols
-        assert len(cells) == world_bounds_rows
+            assert len(cells[row_idx]) == self.world_bounds_cols
+        assert len(cells) == self.world_bounds_rows
 
         self.cells = cells
 
@@ -92,6 +91,15 @@ class GridWorld(object):
         if n.blocks:
             return cell
         return n
+
+    def plot_world(self):
+        pass
+        '''
+            plt.imshow(world_arr, cmap="plasma")
+            plt.colorbar()
+            plt.show()
+        
+        '''
 
 
     def __str__(self):

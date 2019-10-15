@@ -4,7 +4,7 @@
     <arg name="z_pos" default="0.0"/>
     <arg name="world" default="$(find sdpp_gazebo)/worlds/sdpp_base.world"/>
     <arg name="launch_gazebo" default="true" />
-    <arg name="map_file" default="$(find sdpp_human_navigation)/config/blank_map.yaml" />
+    <arg name="map_file" default="$(find sdpp_gazebo)/config/maps/block_room.yaml" />
     <arg name="open_rviz" default="false"/>
     <arg name="move_forward_only" default="true"/>
 

@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
     algo = ValueIterationAlgo(gamma, world)
 
-    
+
 
     while(True):
         print 'iteration {}'.format(iter_cnt).center(72, '-')

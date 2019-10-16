@@ -9,6 +9,7 @@ from nav_msgs.msg import OccupancyGrid
 from sdpp_navigation.grid_world import GridWorld, ValueIterationAlgo
 from sdpp_navigation.ros_wrappers import LoadMap
 
+#class value_iter_bayes(object):
 
 
 def done(world, prev_world):
@@ -51,39 +52,28 @@ def plot_world(world_arr):
 
 if __name__ == '__main__':
 
-    rospy.init_node("nav_grid")
-
-    test = LoadMap()
-
-    test.gridworld_format_data()
-
-    map_pub = rospy.Publisher("/test", OccupancyGrid, queue_size = 1)
     gamma = .99
+    epsilon = 0.0001
+    iter_max = 3
+    iter_cnt = 0
 
-    kwags = test.gridworld_format_data()
+    rospy.init_node("nav_grid")
+    map_pub = rospy.Publisher("/test", OccupancyGrid, queue_size = 1)
 
-    world = GridWorld(**kwags)
+    static_map_obj = LoadMap()
+    static_map_kwags = static_map_obj.gridworld_format_data()
 
-    #plot_world(world.walls_as_array())
+    world = GridWorld(**static_map_kwags)
 
-    world.cells[40][40].reward = 500
-    world.cells[40][40].value = 500
+    world.add_reward_block(40 ,40)
 
-    '''
-    for i in range(115, 125):
-        for j in range(35, 45):
-            world.cells[i][j].is_terminal = True
-            world.cells[i][j].value = 225
-            world.cells[i][j].reward = 225
-            world.cells[i][j].blocks = True
-    '''
-
-    world_arr = world.as_array()
+    world.plot_world(type="wall_map")
+    world.plot_world(type="reward_map")
 
     algo = ValueIterationAlgo(gamma, world)
 
-    iter_cnt = 0
-    '''
+    
+
     while(True):
         print 'iteration {}'.format(iter_cnt).center(72, '-')
 
@@ -92,28 +82,17 @@ if __name__ == '__main__':
 
         algo.update_values(world)
 
-        if iter_cnt >= 20:
+        if iter_cnt >= iter_max:
             break
 
         iter_cnt += 1
     
-
-
+    world.plot_world()
     world_arr = world.as_array()
     CostMap = array_to_costmap(world_arr)
 
-    #print CostMap.data
-    #plot_world(CostMap.data)
-
+    '''
     while not rospy.is_shutdown():
         rospy.sleep(1)
-        map_pub.publish(CostMap) 
+        map_pub.publish(CostMap)
     '''
-
-
-
-
-
-
-
-

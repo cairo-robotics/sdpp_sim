@@ -3,11 +3,11 @@
 import rospy
 import numpy as np
 
+from pprint import pprint, pformat
 from PIL import Image
 
 from nav_msgs.msg import OccupancyGrid
 from nav_msgs.srv import GetMap
-
 
 
 class LoadMap(object):
@@ -59,5 +59,19 @@ class LoadMap(object):
         kwags = {"array": numpy_array, "world_bounds_rows": width, "world_bounds_cols": height}
         return kwags
 
+    def __str__(self):
+        return pformat(self.static_odom_map)
 
-class
+
+class ValueIterWeighting(object):
+
+    def __init__(self, **kwags):
+
+        self.__dict__.update(kwags)
+
+
+    def
+
+
+
+

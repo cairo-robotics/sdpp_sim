@@ -15,10 +15,12 @@ class Cell(object):
 
     def __str__(self):
         return pformat(self.__dict__)
+
     def __repr__(self): return self.__str__()
 
 
 class GridWorld(object):
+
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
@@ -31,10 +33,10 @@ class GridWorld(object):
                 cell.col = col_idx
 
                 #white
-                if value == 255:
+                if value == 0:
                     cell.value = 0
                 #black
-                elif value == 0:
+                elif value == 100:
                     cell.value = 0
                     cell.blocks = True
 
@@ -51,6 +53,20 @@ class GridWorld(object):
         for row in self.cells:
             for cell in row:
                 yield cell
+
+    def add_reward_block(self, x, y, size=5, reward=255):
+
+        offset = int(size/2.0)
+
+        for i in range(0, size):
+            for j in range(0, size):
+                x_pos = x + i - offset
+                y_pos = y + j - offset
+                self.add_reward(x_pos, y_pos, reward=reward)
+
+    def add_reward(self, x, y, reward = 255):
+        self.cells[x][y].reward = reward
+        self.cells[x][y].value = reward
 
     def north(self, cell):
         row = cell.row; col = cell.col
@@ -85,28 +101,39 @@ class GridWorld(object):
     def policy(self):
         return [[c.policy for c in rows] for rows in self.cells]
 
-    def as_array(self):
-        a = [ [cell.value for cell in row] for row in self.cells ]
+    def value_prev_as_array(self):
+        a = [[cell.value_prev for cell in row] for row in self.cells]
+        return np.array(a)
+
+    def value_as_array(self):
+        a = [[cell.value for cell in row] for row in self.cells ]
         return np.array(a)
 
     def walls_as_array(self):
         a = [[cell.blocks for cell in rows] for rows in self.cells]
         return np.array(a).astype(int)
 
+    def reward_as_array(self):
+        a = [[cell.reward for cell in rows] for rows in self.cells]
+        return np.array(a).astype(int)
+
     def plot_world(self, type="value_map"):
 
         if type is "value_map":
-            plt.imshow(self.as_array(), cmap="plasma")
-            plt.colorbar()
-            plt.show()
+            plt.imshow(self.value_as_array(), cmap="plasma")
 
         elif type is "wall_map":
             plt.imshow(self.walls_as_array(), cmap="plasma")
-            plt.colorbar()
-            plt.show()
+
+        elif type is "reward_map":
+            plt.imshow(self.reward_as_array(), cmap="plasma")
 
         else:
             print("plot_world requires value_map or wall_map selection")
+            return
+
+        plt.colorbar()
+        plt.show()
 
     def __str__(self):
         return pformat(self.as_array())
@@ -115,9 +142,10 @@ class GridWorld(object):
 
 
 class ValueIterationAlgo(object):
-    def __init__(self, discount_factor, world):
+    def __init__(self, discount_factor, world, epsilon=0.001):
         self.discount_factor = discount_factor
         self.world = world
+        self.epsilon = epsilon
 
     def update(self, state):
         if state.is_terminal or state.blocks:
@@ -143,6 +171,12 @@ class ValueIterationAlgo(object):
         for row_idx, row in enumerate(world.cells):
             for col_idx, cell in enumerate(row):
                 cell.value_prev = cell.value
+
+    def done(self):
+        prev = self.world.value_prev_as_array()
+        current = self.world.as_array()
+        diff = np.abs(prev - current)
+        return not (diff > self.epsilon).any()
 
     def __str__(self):
         return pformat(self.__dict__)

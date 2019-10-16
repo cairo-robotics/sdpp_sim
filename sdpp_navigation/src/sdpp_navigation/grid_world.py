@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import numpy as np
 from pprint import pprint, pformat
+import matplotlib.pyplot as plt
+
 
 class Cell(object):
     def __init__(self):
@@ -43,24 +45,12 @@ class GridWorld(object):
                 cells[row_idx].append(cell)
             assert len(cells[row_idx]) == self.world_bounds_cols
         assert len(cells) == self.world_bounds_rows
-
         self.cells = cells
-
-    def policy(self):
-        return [[c.policy for c in rows] for rows in self.cells]
 
     def __iter__(self):
         for row in self.cells:
             for cell in row:
                 yield cell
-
-    def as_array(self):
-        a = [ [cell.value for cell in row] for row in self.cells ]
-        return np.array(a)
-
-    def walls_as_array(self):
-        a = [[cell.blocks for cell in rows] for rows in self.cells]
-        return np.array(a).astype(int)
 
     def north(self, cell):
         row = cell.row; col = cell.col
@@ -92,18 +82,35 @@ class GridWorld(object):
             return cell
         return n
 
-    def plot_world(self):
-        pass
-        '''
-            plt.imshow(world_arr, cmap="plasma")
+    def policy(self):
+        return [[c.policy for c in rows] for rows in self.cells]
+
+    def as_array(self):
+        a = [ [cell.value for cell in row] for row in self.cells ]
+        return np.array(a)
+
+    def walls_as_array(self):
+        a = [[cell.blocks for cell in rows] for rows in self.cells]
+        return np.array(a).astype(int)
+
+    def plot_world(self, type="value_map"):
+
+        if type is "value_map":
+            plt.imshow(self.as_array(), cmap="plasma")
             plt.colorbar()
             plt.show()
-        
-        '''
 
+        elif type is "wall_map":
+            plt.imshow(self.walls_as_array(), cmap="plasma")
+            plt.colorbar()
+            plt.show()
+
+        else:
+            print("plot_world requires value_map or wall_map selection")
 
     def __str__(self):
         return pformat(self.as_array())
+
     def __repr__(self): return self.__str__()
 
 
@@ -130,7 +137,6 @@ class ValueIterationAlgo(object):
         policy = moves_directions[max_idx]
         state.value = self.discount_factor * max_pv + state.reward
         state.policy = policy
-##        print locals()
 
     def update_values(self, world):
 
@@ -138,41 +144,7 @@ class ValueIterationAlgo(object):
             for col_idx, cell in enumerate(row):
                 cell.value_prev = cell.value
 
-
     def __str__(self):
         return pformat(self.__dict__)
+
     def __repr__(self): return self.__str__()
-
-
-
-def value_iteration(world, world_reward,gamma = .99):
-
-    v = np.zeros(world.shape)
-    print world
-    print world.shape
-    print v.shape
-
-    max_iterations = 20
-    eps = 1e-20
-
-    for i in range(max_iterations):
-        prev_v = np.copy(v)
-        for i in range(0, world.shape[0]):
-            for j in range(0, world.shape[1]):
-                #value in each action
-                q_sa = [0] * np.zeros(len(nA))
-                for index, A in enumerate(nA):
-                    row_A = i + A[0]
-                    col_A = j + A[1]
-                    try:
-                        #if
-                        q_sa[index] = world_reward[i, j] + gamma * (A[2]*prev_v[row_A, col_A])
-
-                    except IndexError as error:
-                        q_sa[index] = -1
-
-                v[i, j] = max(q_sa)
-
-    plt.imshow(v, cmap="plasma")
-    plt.colorbar()
-    plt.show()

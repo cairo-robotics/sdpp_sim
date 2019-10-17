@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from nav_msgs.msg import OccupancyGrid
-from sdpp_navigation.grid_world import GridWorld, ValueIterationAlgo
+from sdpp_navigation.grid_world import GridWorld, ValueIterationAlgo, ValueIterWeighting
 from sdpp_navigation.ros_wrappers import LoadMap
 
 #class value_iter_bayes(object):
@@ -61,21 +61,22 @@ if __name__ == '__main__':
     map_pub = rospy.Publisher("/test", OccupancyGrid, queue_size = 1)
 
     static_map_obj = LoadMap()
-    static_map_kwags = static_map_obj.gridworld_format_data()
+    static_map_dict = static_map_obj.gridworld_format_data()
 
-    world = GridWorld(**static_map_kwags)
+    kwags_VIW = {"goals_loc": [(40, 40)],
+                 "epsilon": 0.0001,
+                 "gamma": .99,
+                 "iter_max": 20}
 
-    world.add_reward_block(40 ,40)
+    test = ValueIterWeighting(static_map_dict, **kwags_VIW)
 
-    world.plot_world(type="wall_map")
-    world.plot_world(type="reward_map")
 
+
+    '''
     algo = ValueIterationAlgo(gamma, world)
 
-
-
     while(True):
-        print 'iteration {}'.format(iter_cnt).center(72, '-')
+        print 'iteration {}'.foermat(iter_cnt).center(72, '-')
 
         for cell in world:
             algo.update(cell)
@@ -91,7 +92,6 @@ if __name__ == '__main__':
     world_arr = world.as_array()
     CostMap = array_to_costmap(world_arr)
 
-    '''
     while not rospy.is_shutdown():
         rospy.sleep(1)
         map_pub.publish(CostMap)

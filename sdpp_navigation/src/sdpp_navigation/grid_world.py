@@ -21,8 +21,12 @@ class Cell(object):
 
 class GridWorld(object):
 
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+    def __init__(self, static_map, world_bounds_cols, world_bounds_rows):
+
+        self.world_bounds_rows = world_bounds_rows
+        self.world_bounds_cols = world_bounds_cols
+
+        self.array = static_map
 
         cells = []
         for row_idx, row in enumerate(self.array):
@@ -174,7 +178,7 @@ class ValueIterationAlgo(object):
 
     def done(self):
         prev = self.world.value_prev_as_array()
-        current = self.world.as_array()
+        current = self.world.value_as_array()
         diff = np.abs(prev - current)
         return not (diff > self.epsilon).any()
 
@@ -182,3 +186,81 @@ class ValueIterationAlgo(object):
         return pformat(self.__dict__)
 
     def __repr__(self): return self.__str__()
+
+
+class ValueIterWeighting(object):
+
+    def __init__(self, static_map_dict, **kwags):
+
+        options = {
+            "goals_loc": None,
+            "epsilon":   0.0001,
+            "gamma":     0.99,
+            "iter_max":  100}
+
+        options.update(kwags)
+        self.__dict__.update(options)
+
+        if self.goals_loc is None:
+            print("No goals for ValueIterWeighting")
+            return
+
+        num_goals = len(self.goals_loc)
+        print("ValueIterWeighting started with %d goals" % num_goals)
+
+
+        map_array = static_map_dict["array"]
+        world_bounds_cols = static_map_dict["world_bounds_cols"]
+        world_bounds_rows = static_map_dict["world_bounds_rows"]
+
+        self.grid_worlds_array = []
+        self.algo_array = []
+        for goal in self.goals_loc:
+            grid_world = GridWorld(map_array, world_bounds_cols, world_bounds_rows)
+
+            grid_world.plot_value_
+            grid_world.add_reward_block(goal[0], goal[1])
+            self.grid_worlds_array.append(grid_world)
+
+            algo = ValueIterationAlgo(self.gamma, grid_world)
+
+            iter_cnt = 0
+
+            while True:
+                print('iteration {}'.format(iter_cnt).center(72, '-'))
+
+                for cell in grid_world:
+                    algo.update(cell)
+
+                if iter_cnt >= self.iter_max:
+                    break
+
+                if algo.done():
+                    break
+
+                iter_cnt += 1
+
+
+        print("value iter weighting worlds initialized")
+
+
+
+        self.grid_worlds_array[0].plot_world()
+
+
+
+
+
+
+
+
+
+
+
+    def static_map_dict(self):
+        pass
+
+
+
+    def spawn_goal_world(self, goal_loc):
+        pass

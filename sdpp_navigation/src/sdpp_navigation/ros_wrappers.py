@@ -63,15 +63,3 @@ class LoadMap(object):
         return pformat(self.static_odom_map)
 
 
-class ValueIterWeighting(object):
-
-    def __init__(self, **kwags):
-
-        self.__dict__.update(kwags)
-
-
-    def
-
-
-
-

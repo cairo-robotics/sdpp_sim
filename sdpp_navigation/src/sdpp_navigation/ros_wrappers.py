@@ -23,7 +23,7 @@ class LoadMap(object):
             self.static_odom_map = self.load_from_file_location_map(file_location)
 
     @staticmethod
-    def load_from_static_map_srv(srv_name = '/static_map'):
+    def load_from_static_map_srv(srv_name='/static_map'):
         rospy.wait_for_service(srv_name)
         static_map_srv = rospy.ServiceProxy(srv_name, GetMap)
 

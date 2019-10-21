@@ -9,17 +9,6 @@ from nav_msgs.msg import OccupancyGrid
 from sdpp_navigation.grid_world import GridWorld, ValueIterationAlgo, ValueIterWeighting
 from sdpp_navigation.ros_wrappers import LoadMap
 
-#class value_iter_bayes(object):
-
-
-def done(world, prev_world):
-    epsilon = 0.00001
-    try:
-        diff = np.abs(world.as_array() - prev_world)
-    except RuntimeWarning:
-        pass
-    return not (diff > epsilon).any()
-
 
 def array_to_costmap(array):
 
@@ -44,55 +33,42 @@ def array_to_costmap(array):
     return CostMap
 
 
-def plot_world(world_arr):
-    plt.imshow(world_arr, cmap="plasma")
-    plt.colorbar()
-    plt.show()
+def test_routine(human_goals):
+    pass
 
 
 if __name__ == '__main__':
 
-    gamma = .99
-    epsilon = 0.0001
-    iter_max = 3
-    iter_cnt = 0
-
     rospy.init_node("nav_grid")
-    map_pub = rospy.Publisher("/test", OccupancyGrid, queue_size = 1)
+    map_pub = rospy.Publisher("/test", OccupancyGrid, queue_size=1)
 
     static_map_obj = LoadMap()
     static_map_dict = static_map_obj.gridworld_format_data()
 
-    kwags_VIW = {"goals_loc": [(40, 40)],
-                 "epsilon": 0.0001,
-                 "gamma": .99,
-                 "iter_max": 20}
+    kwags_VIW = {"goals_loc":   [(60, 20), (20, 20)],
+                 "epsilon":     0.001,
+                 "gamma":       .99,
+                 "iter_max":    200,
+                 "plot":        None}
 
-    test = ValueIterWeighting(static_map_dict, **kwags_VIW)
+    #test = ValueIterWeighting(static_map_dict=static_map_dict, **kwags_VIW)
+    #test.pickle_obj_dict("test1.p")
 
+    test = ValueIterWeighting(pickle_file="test1.p")
 
+    test.grid_worlds_array[1].plot_world()
 
-    '''
-    algo = ValueIterationAlgo(gamma, world)
+    test.bayesian_path_matching("human_0")
 
-    while(True):
-        print 'iteration {}'.foermat(iter_cnt).center(72, '-')
+    map_pub0 = rospy.Publisher("/test0", OccupancyGrid, queue_size=1)
+    costmap_0 = test.grid_worlds_array[0].value_as_array()
+    costmap_0 = array_to_costmap(costmap_0)
 
-        for cell in world:
-            algo.update(cell)
-
-        algo.update_values(world)
-
-        if iter_cnt >= iter_max:
-            break
-
-        iter_cnt += 1
-    
-    world.plot_world()
-    world_arr = world.as_array()
-    CostMap = array_to_costmap(world_arr)
+    map_pub1 = rospy.Publisher("/test1", OccupancyGrid, queue_size=1)
+    costmap_1 = test.grid_worlds_array[1].value_as_array()
+    costmap_1 = array_to_costmap(costmap_1)
 
     while not rospy.is_shutdown():
         rospy.sleep(1)
-        map_pub.publish(CostMap)
-    '''
+        map_pub0.publish(costmap_0)
+        map_pub1.publish(costmap_1)

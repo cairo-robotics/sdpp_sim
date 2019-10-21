@@ -1,7 +1,12 @@
 #!/usr/bin/env python
+
+import pickle
+import rospy
 import numpy as np
 from pprint import pprint, pformat
 import matplotlib.pyplot as plt
+
+from nav_msgs.msg import Odometry
 
 
 class Cell(object):
@@ -133,14 +138,14 @@ class GridWorld(object):
             plt.imshow(self.reward_as_array(), cmap="plasma")
 
         else:
-            print("plot_world requires value_map or wall_map selection")
+            print("plot_world requires value_map, wall_map, reward_map selection")
             return
 
         plt.colorbar()
         plt.show()
 
     def __str__(self):
-        return pformat(self.as_array())
+        return pformat(self.value_as_array())
 
     def __repr__(self): return self.__str__()
 
@@ -190,13 +195,27 @@ class ValueIterationAlgo(object):
 
 class ValueIterWeighting(object):
 
-    def __init__(self, static_map_dict, **kwags):
+    def __init__(self, static_map_dict=None, pickle_file=None,  **kwags):
+
+        self.test_sum = [0] * 2
+        print self.test_sum
+
+        if pickle_file is not None:
+            self._unpickle_obj_dict(pickle_file)
+            return
+
+        if static_map_dict is None:
+            print("need static map to run algorithm")
+            return
+
+        self.static_map_dict = static_map_dict
 
         options = {
-            "goals_loc": None,
+            "goals_loc": None,      #list of tuple pairs (x, y)
             "epsilon":   0.0001,
             "gamma":     0.99,
-            "iter_max":  100}
+            "iter_max":  100,
+            "plot":      None}      #list of strings
 
         options.update(kwags)
         self.__dict__.update(options)
@@ -218,9 +237,7 @@ class ValueIterWeighting(object):
         for goal in self.goals_loc:
             grid_world = GridWorld(map_array, world_bounds_cols, world_bounds_rows)
 
-            grid_world.plot_value_
             grid_world.add_reward_block(goal[0], goal[1])
-            self.grid_worlds_array.append(grid_world)
 
             algo = ValueIterationAlgo(self.gamma, grid_world)
 
@@ -234,33 +251,50 @@ class ValueIterWeighting(object):
 
                 if iter_cnt >= self.iter_max:
                     break
-
                 if algo.done():
                     break
 
+                algo.update_values(grid_world)
                 iter_cnt += 1
 
+            if self.plot is not None:
+                for type in self.plot:
+                    grid_world.plot_world(type)
 
-        print("value iter weighting worlds initialized")
-
-
-
-        self.grid_worlds_array[0].plot_world()
-
+            self.grid_worlds_array.append(grid_world)
 
 
+    def bayesian_path_matching(self, agent):
+
+        sub_topic = agent + "/odom"
+        self.agent_subscriber = rospy.Subscriber(sub_topic, Odometry, self.bayes_callback)
+
+    def bayes_callback(self, msg):
+
+        x, y = msg.pose.pose.position.x, msg.pose.pose.position.y
+        x = int(x*20)
+        y = int(y*20)
+
+        self.test_sum[0] += self.grid_worlds_array[0].cells[x][y].value
+        self.test_sum[1] += self.grid_worlds_array[1].cells[x][y].value
+
+        max_value = max(self.test_sum)
+        index_max = self.test_sum.index(max_value)
+        print index_max, self.test_sum[index_max]
 
 
+    def pickle_obj_dict(self, filename):
+        print("dumping pickle")
+        pickle.dump(self.__dict__, open(filename, "wb"))
+        print("pickle dumped")
 
+    def _unpickle_obj_dict(self, filename):
 
-
-
-
-
-    def static_map_dict(self):
-        pass
-
+        print("pickle loading")
+        self.__dict__.update(pickle.load(open(filename, "rb")))
+        print("pickle loaded")
 
 
     def spawn_goal_world(self, goal_loc):
         pass
+

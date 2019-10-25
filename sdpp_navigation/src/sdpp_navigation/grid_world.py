@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
+import collections
 import pickle
-import rospy
 import numpy as np
 from pprint import pprint, pformat
 import matplotlib.pyplot as plt
 
+import rospy
 from nav_msgs.msg import Odometry
+from nav_msgs.msg import OccupancyGrid
+
 
 
 class Cell(object):
@@ -197,8 +200,22 @@ class ValueIterWeighting(object):
 
     def __init__(self, static_map_dict=None, pickle_file=None,  **kwags):
 
+        options = {
+            "goals_loc":    None,  # list of tuple pairs (x, y)
+            "epsilon":      0.0001,
+            "gamma":        0.99,
+            "iter_max":     100,
+            "plot":         None,
+            "buffer_size":  200,
+            "pub_map":      "/fuse_test"}  # list of strings
+
+        options.update(kwags)
+
+        self.__dict__.update(options)
         self.test_sum = [0] * 2
-        print self.test_sum
+        self.likelihood_buffer = [collections.deque(maxlen=self.buffer_size), collections.deque(maxlen=self.buffer_size) ]
+        self.pub_map = rospy.Publisher(self.pub_map, OccupancyGrid, queue_size=1)
+
 
         if pickle_file is not None:
             self._unpickle_obj_dict(pickle_file)
@@ -209,16 +226,6 @@ class ValueIterWeighting(object):
             return
 
         self.static_map_dict = static_map_dict
-
-        options = {
-            "goals_loc": None,      #list of tuple pairs (x, y)
-            "epsilon":   0.0001,
-            "gamma":     0.99,
-            "iter_max":  100,
-            "plot":      None}      #list of strings
-
-        options.update(kwags)
-        self.__dict__.update(options)
 
         if self.goals_loc is None:
             print("No goals for ValueIterWeighting")
@@ -275,12 +282,63 @@ class ValueIterWeighting(object):
         x = int(x*20)
         y = int(y*20)
 
-        self.test_sum[0] += self.grid_worlds_array[0].cells[x][y].value
-        self.test_sum[1] += self.grid_worlds_array[1].cells[x][y].value
+        #wtf why are my maps all flipped D:
+        map_0_cost = self.grid_worlds_array[0].cells[y][x].value
+        map_1_cost = self.grid_worlds_array[1].cells[y][x].value
 
-        max_value = max(self.test_sum)
-        index_max = self.test_sum.index(max_value)
-        print index_max, self.test_sum[index_max]
+
+        self.likelihood_buffer[0].append(map_0_cost)
+        self.likelihood_buffer[1].append(map_1_cost)
+
+        likelihood_cost = [0, 0]
+        likelihood_cost[0] = sum(value for value in self.likelihood_buffer[0])
+        likelihood_cost[1] = sum(value for value in self.likelihood_buffer[1])
+
+        max_value = max(likelihood_cost)
+        index_max = likelihood_cost.index(max_value)
+        percent = (max_value + .1)/(sum(likelihood_cost)+.1) * 100
+
+        sum_cost = sum(likelihood_cost)+.1
+        likelihood_cost = np.asarray(likelihood_cost)
+        percent_array = np.add(likelihood_cost, 0.1)/sum_cost
+
+        print "likely goal: " + str(index_max) + " by: "+ str(percent) + " percent"
+
+        map_0 = self.grid_worlds_array[0].value_as_array()
+        map_1 = self.grid_worlds_array[1].value_as_array()
+
+        print percent_array
+
+        map_0 = map_0*percent_array[0]
+        map_1 = map_1*percent_array[1]
+
+        map_pub = np.add(map_0, map_1)
+
+        self.pub_map.publish(self.array_to_costmap(map_pub))
+
+
+    def array_to_costmap(self, array):
+
+        CostMap = OccupancyGrid()
+        CostMap.info.resolution = .05
+        CostMap.info.width = 200
+        CostMap.info.height = 200
+
+        new_range = 100
+
+        world_arr = array
+        world_arr_flat = np.asanyarray(world_arr).flatten()
+        max_value = np.amax(world_arr_flat)
+        min_value = np.amin(world_arr_flat)
+        old_range = max_value - min_value
+        world_arr_flat = world_arr_flat / (old_range / new_range)
+        world_arr_flat = world_arr_flat.astype(np.int8)
+        world_arr_flat = world_arr_flat.tolist()
+        map_tuple = tuple(world_arr_flat)
+        CostMap.data = map_tuple
+
+        return CostMap
+
 
 
     def pickle_obj_dict(self, filename):

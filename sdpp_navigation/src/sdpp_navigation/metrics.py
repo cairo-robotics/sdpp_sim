@@ -18,3 +18,17 @@ class HumanMetrics(object):
         }
 
         self.__dict__.update(options)
+
+
+
+    def time_to_dest(self):
+        pass
+
+    def planning_time(self):
+        pass
+
+    def idle_time(self):
+        pass
+
+
+

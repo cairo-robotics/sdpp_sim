@@ -63,3 +63,7 @@ class LoadMap(object):
         return pformat(self.static_odom_map)
 
 
+class MoveBaseAgents(object):
+
+    def __init__(self):
+        pass

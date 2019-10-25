@@ -61,12 +61,12 @@
 
   <gazebo>
     <plugin name="diff_drive_controller" filename="libgazebo_ros_diff_drive.so">
-      <commandTopic>cmd_vel</commandTopic>
-      <odometryTopic>odom</odometryTopic>
-      <odometryFrame>odom</odometryFrame>
+      <commandTopic>$(arg multi_bot)/cmd_vel</commandTopic>
+      <odometryTopic>$(arg multi_bot)/odom</odometryTopic>
+      <odometryFrame>$(arg multi_bot)/odom</odometryFrame>
       <odometrySource>world</odometrySource>
       <publishOdomTF>true</publishOdomTF>
-      <robotBaseFrame>base_footprint</robotBaseFrame>
+      <robotBaseFrame>$(arg multi_bot)/base_footprint</robotBaseFrame>
       <publishWheelTF>false</publishWheelTF>
       <publishTf>true</publishTf>
       <publishWheelJointState>true</publishWheelJointState>
@@ -109,8 +109,8 @@
         </noise>
       </ray>
       <plugin name="gazebo_ros_lds_lfcd_controller" filename="libgazebo_ros_laser.so">
-        <topicName>scan</topicName>
-        <frameName>base_scan</frameName>
+        <topicName>$(arg multi_bot)/scan</topicName>
+        <frameName>$(arg multi_bot)/base_scan</frameName>
       </plugin>
     </sensor>
   </gazebo>

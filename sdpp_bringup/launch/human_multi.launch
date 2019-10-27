@@ -1,16 +1,14 @@
 <launch>
+    <!-- note this only launches with a gazebo world already running -->
     <arg name="x_pos" default="1.0"/>
     <arg name="y_pos" default="1.0"/>
     <arg name="z_pos" default="0.0"/>
-    <arg name="world" default="$(find sdpp_gazebo)/worlds/sdpp_base.world"/>
-    <!--arg name="launch_gazebo" default="true" /-->
-    <!--arg name="map_file" default="$(find sdpp_gazebo)/config/maps/block_room.yaml" /-->
-    <!--arg name="open_rviz" default="false"/-->
+    <arg name="param_folder" default="human" />
     <arg name="move_forward_only" default="true"/>
-    <arg name="multi_bot" default="multi_human" />
+    <arg name="multi_bot" default="single_human" />
 
-
-    <node pkg="tf" type="static_transform_publisher" name="map_to_$(arg multi_bot)_odom" args="0 0 0 0 0 0 $(arg multi_bot)/odom map 100" />
+    <!-- setup move_base transforms make sure to offset by start position or else it kills tf -->
+    <node pkg="tf" type="static_transform_publisher" name="map_to_$(arg multi_bot)_odom" args="$(arg x_pos) $(arg y_pos) $(arg z_pos) 0 0 0 /map /$(arg multi_bot)/odom  100" />
 
 
     <!-- load robot description -->
@@ -28,16 +26,18 @@
     <!-- Arguments -->
     <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
         <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
-        <rosparam file="$(find sdpp_bringup)/param/human/costmap_common_params.yaml" command="load" ns="global_costmap" />
-        <rosparam file="$(find sdpp_bringup)/param/human/costmap_common_params.yaml" command="load" ns="local_costmap" />
-        <rosparam file="$(find sdpp_bringup)/param/human/local_costmap_params.yaml" command="load" />
-        <rosparam file="$(find sdpp_bringup)/param/human/global_costmap_params.yaml" command="load" />
-        <rosparam file="$(find sdpp_bringup)/param/human/move_base_params.yaml" command="load" />
-        <rosparam file="$(find sdpp_bringup)/param/human/dwa_local_planner_params.yaml" command="load" />
-        <remap from="/$(arg multi_bot)/map" to="/map"/>
-
+        <rosparam file="$(find sdpp_bringup)/param/$(arg param_folder)/costmap_common_params.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(find sdpp_bringup)/param/$(arg param_folder)/costmap_common_params.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find sdpp_bringup)/param/$(arg param_folder)/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(find sdpp_bringup)/param/$(arg param_folder)/global_costmap_params.yaml" command="load" />
+        <rosparam file="$(find sdpp_bringup)/param/$(arg param_folder)/move_base_params.yaml" command="load" />
+        <rosparam file="$(find sdpp_bringup)/param/$(arg param_folder)/dwa_local_planner_params.yaml" command="load" />
         <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
 
+        <!-- where to find static map, override namespacing -->
+        <remap from="/$(arg multi_bot)/map" to="/map"/>
+
+        <!--multi agent remapping -->
         <param name="local_costmap/robot_base_frame" type="str" value="$(arg multi_bot)/base_link" />
         <param name="global_costmap/robot_base_frame" type="str" value="$(arg multi_bot)/base_link" />
     </node>

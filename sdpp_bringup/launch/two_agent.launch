@@ -17,14 +17,12 @@
       <arg name="debug" value="false"/>
     </include>
 
-
     <group ns="human_0">
         <include file="$(find sdpp_bringup)/launch/human_multi.launch">
             <arg name="multi_bot" value="human_0"/>
 
         </include>
     </group>
-
 
     <group ns="human_1">
         <include file="$(find sdpp_bringup)/launch/human_multi.launch">
@@ -34,6 +32,7 @@
 
         </include>
     </group>
+
 
      <group if="$(arg open_rviz)">
         <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find sdpp_human_navigation)/rviz/human_0.rviz"/>

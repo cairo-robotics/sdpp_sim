@@ -26,7 +26,7 @@ void CostmapInjectionLayer::onInitialize()
       &CostmapInjectionLayer::reconfigureCB, this, _1, _2);
   dsrv_->setCallback(cb);
 
-  sub = nh.subscribe("/test", 1000, &CostmapInjectionLayer::costmapCallback, this);
+  sub = nh.subscribe("costmap_injection", 1000, &CostmapInjectionLayer::costmapCallback, this);
     ROS_INFO("subscriber initialized");
 }
 

@@ -56,9 +56,9 @@ class AgentActionClient(object):
         self.pub_pose(next_pose)
 
         if self.iterator >= self.max_iterator:
-            print "reset iterator"
             self.iterator = 0
-        self.iterator += 1
+        else:
+            self.iterator += 1
 
     def active_cb(self):
         rospy.loginfo("running goal")

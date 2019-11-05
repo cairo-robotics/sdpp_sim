@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import rosparam
+
 import rospy
 import numpy as np
 import actionlib
@@ -20,7 +22,6 @@ class AgentActionClient(object):
 
         options.update(kwags)
         self.__dict__.update(options)
-
         self.points = points
         self.iterator = 0
         self.max_iterator = len(points) -1
@@ -149,23 +150,24 @@ class AgentActionClient(object):
 
 if __name__ == '__main__':
 
-    rospy.init_node("move_agent")
+    rospy.init_node("move_agents")
+
+    waypoints_human_0 = rosparam.get_param("human_0/waypoints")
+    waypoints_human_sdpp = rosparam.get_param("human_sdpp/waypoints")
+
+    #print(waypoints_human_0)
+    #print(waypoints_human_sdpp)
+    
 
     point_a = np.asarray([1.0, 1.0, 0.0])
     point_b = np.asarray([3.0, 3.0, 0.0])
 
     pose_array = [[1.0, 1.0, 0.0], [3.0, 3.0, 0.0]]
 
-
-    move_test = AgentActionClient(pose_array)
+    move_test = AgentActionClient(waypoints_human_0)
 
 
 
     while not rospy.is_shutdown():
         pass
-
-
-
-
-
 

@@ -17,9 +17,11 @@
     <!-- spawn urdf model  change spawn name-->
     <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf_$(arg multi_bot)"  args="-urdf -model $(arg multi_bot) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
 
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher_$(arg multi_bot)">
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
         <param name="publish_frequency" type="double" value="50.0" />
         <param name="tf_prefix" value="$(arg multi_bot)"/>
+        <!-- FU ros! mapping from absolute namespacing to relative namespacing -->
+        <remap from="/joint_states" to="joint_states"/>
     </node>
 
     <!-- move base -->

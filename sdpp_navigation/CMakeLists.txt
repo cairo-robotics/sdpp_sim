@@ -12,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   sensor_msgs
   std_msgs
-  dynamic_reconfigure
 )
 
 ## System dependencies are found with CMake's conventions
@@ -90,9 +89,11 @@ catkin_python_setup()
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-generate_dynamic_reconfigure_options(
-   cfg/trajinterface.cfg
-)
+#generate_dynamic_reconfigure_options(
+#   cfg/DynReconf1.cfg
+#   cfg/DynReconf2.cfg
+# )
+
 ###################################
 ## catkin specific configuration ##
 ###################################

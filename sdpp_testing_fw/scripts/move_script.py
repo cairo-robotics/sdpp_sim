@@ -158,13 +158,12 @@ if __name__ == '__main__':
     #print(waypoints_human_0)
     #print(waypoints_human_sdpp)
     
+    human_0_kwags = {"frame_id":             "human_0/odom",
+                     "action_client_topic":  "human_0/move_base" 
+                     }
 
-    point_a = np.asarray([1.0, 1.0, 0.0])
-    point_b = np.asarray([3.0, 3.0, 0.0])
-
-    pose_array = [[1.0, 1.0, 0.0], [3.0, 3.0, 0.0]]
-
-    move_test = AgentActionClient(waypoints_human_0)
+    
+    move_test = AgentActionClient(waypoints_human_0, **human_0_kwags)
 
 
 

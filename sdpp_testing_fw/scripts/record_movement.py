@@ -5,7 +5,7 @@ import pickle
 import numpy as np
 
 from dynamic_reconfigure.server import Server
-from sdpp_navigation.cfg import trajinterfaceConfig
+from sdpp_testing_fw.cfg import trajinterfaceConfig
 from nav_msgs.msg import Odometry
 
 class TrajAgentInterface(object):

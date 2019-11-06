@@ -7,9 +7,8 @@
     <arg name="move_forward_only" default="true"/>
     <arg name="multi_bot" default="single_human" />
 
-    <!-- setup move_base transforms make sure to offset by start position or else it kills tf -->
-    <node pkg="tf" type="static_transform_publisher" name="map_to_$(arg multi_bot)_odom" args="$(arg x_pos) $(arg y_pos) $(arg z_pos) 0 0 0 /map /$(arg multi_bot)/odom  100" />
-
+    <!-- setup move_base transforms make sure no absolute pathing prefix or tf2 dies X.x -->
+    <node pkg="tf" type="static_transform_publisher" name="map_to_$(arg multi_bot)_odom" args="0 0 0 0 0 0 map $(arg multi_bot)/odom  100" />
 
     <!-- load robot description -->
     <param name="robot_description" command="$(find xacro)/xacro --inorder $(find sdpp_human_description)/urdf/turtlebot3_waffle_pi.urdf.xacro" />

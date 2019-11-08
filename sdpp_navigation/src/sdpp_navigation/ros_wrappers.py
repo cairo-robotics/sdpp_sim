@@ -32,7 +32,7 @@ class LoadMap(object):
             rospy.loginfo(rospy.get_name() + ": received static map")
 
         except rospy.ServiceException as exc:
-            rospy.logerror(rospy.get_name() + ": unable to get static map" + str(exc))
+            rospy.logerr(rospy.get_name() + ": unable to get static map" + str(exc))
             return None
 
         return static_odom_msg
@@ -40,7 +40,7 @@ class LoadMap(object):
     @staticmethod
     def load_from_file_location_map(file_location):
 
-        rospy.logerror(rospy.get_name() + ": load map directly not finished")
+        rospy.loginfo(rospy.get_name() + ": load map directly not finished")
         im_frame = Image.open('block_room.png')
         np_frame = np.array(im_frame)
         np_frame = np_frame[:, :, 0]

@@ -343,6 +343,7 @@ class ValueIterWeighting(object):
 
     def pickle_obj_dict(self, filename):
         print("dumping pickle")
+        self.pub_map = None
         pickle.dump(self.__dict__, open(filename, "wb"))
         print("pickle dumped")
 
@@ -350,6 +351,7 @@ class ValueIterWeighting(object):
 
         print("pickle loading")
         self.__dict__.update(pickle.load(open(filename, "rb")))
+        self.pub_map = rospy.Publisher(self.pub_map, OccupancyGrid, queue_size=1)
         print("pickle loaded")
 
 

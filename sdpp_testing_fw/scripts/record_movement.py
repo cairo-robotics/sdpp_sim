@@ -112,11 +112,9 @@ class Measurements(object):
 
 if __name__ == "__main__":
     
-    print("hello world")
-
     rospy.init_node("recorder_node")
 
-    topic_names = ["test1", "test2"]
+    topic_names = ["human_0", "human_sdpp"]
 
     msm_kwags = {"odom_topic_array": topic_names,
                "file_prefix": "test_",

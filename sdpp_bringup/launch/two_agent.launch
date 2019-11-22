@@ -20,13 +20,13 @@
     </include>
 
     <group ns="human_0" if="$(arg agent_0)">
-        <include file="$(find sdpp_bringup)/launch/human_multi.launch">
+        <include file="$(find sdpp_human_navigation)/launch/human_multi.launch">
             <arg name="multi_bot" value="human_0"/>
         </include>
     </group>
 
     <group ns="human_sdpp" if="$(arg agent_1)">
-        <include file="$(find sdpp_bringup)/launch/human_multi.launch">
+        <include file="$(find sdpp_human_navigation)/launch/human_multi.launch">
             <arg name="multi_bot" value="human_sdpp"/>
             <arg name="x_pos" value="4.0"/>
             <arg name="y_pos" value="4.0"/>

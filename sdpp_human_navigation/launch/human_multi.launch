@@ -11,7 +11,7 @@
     <node pkg="tf" type="static_transform_publisher" name="map_to_$(arg multi_bot)_odom" args="0 0 0 0 0 0 map $(arg multi_bot)/odom  100" />
 
     <!-- load robot description -->
-    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find sdpp_human_description)/urdf/turtlebot3_waffle_pi.urdf.xacro" />
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find sdpp_human_description)/urdf/diff_human.urdf.xacro" />
 
     <!-- spawn urdf model  change spawn name-->
     <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf_$(arg multi_bot)"  args="-urdf -model $(arg multi_bot) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
@@ -27,12 +27,12 @@
     <!-- Arguments -->
     <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
         <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
-        <rosparam file="$(find sdpp_bringup)/param/$(arg param_folder)/costmap_common_params.yaml" command="load" ns="global_costmap" />
-        <rosparam file="$(find sdpp_bringup)/param/$(arg param_folder)/costmap_common_params.yaml" command="load" ns="local_costmap" />
-        <rosparam file="$(find sdpp_bringup)/param/$(arg param_folder)/local_costmap_params.yaml" command="load" />
-        <rosparam file="$(find sdpp_bringup)/param/$(arg param_folder)/global_costmap_params.yaml" command="load" />
-        <rosparam file="$(find sdpp_bringup)/param/$(arg param_folder)/move_base_params.yaml" command="load" />
-        <rosparam file="$(find sdpp_bringup)/param/$(arg param_folder)/dwa_local_planner_params.yaml" command="load" />
+        <rosparam file="$(find sdpp_human_navigation)/param/$(arg param_folder)/costmap_common_params.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(find sdpp_human_navigation)/param/$(arg param_folder)/costmap_common_params.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find sdpp_human_navigation)/param/$(arg param_folder)/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(find sdpp_human_navigation)/param/$(arg param_folder)/global_costmap_params.yaml" command="load" />
+        <rosparam file="$(find sdpp_human_navigation)/param/$(arg param_folder)/move_base_params.yaml" command="load" />
+        <rosparam file="$(find sdpp_human_navigation)/param/$(arg param_folder)/dwa_local_planner_params.yaml" command="load" />
         <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
 
         <!-- where to find static map, override namespacing -->

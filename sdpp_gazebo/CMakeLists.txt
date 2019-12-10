@@ -31,13 +31,6 @@ include_directories(${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS} ${GAZEBO_INCLUDE
 
 list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
 
-
-add_library(model_walk SHARED plugin/model_walk.cpp)
-#add_dependencies(model_walk ${catkin_EXPORTED_TARGETS})
-target_link_libraries(model_walk ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
-
-
-
 catkin_package(
   DEPENDS 
     roscpp 

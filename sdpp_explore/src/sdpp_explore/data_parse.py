@@ -18,6 +18,37 @@ import numpy as np
 import math
 
 
+class Recorder(object):
+    def __init__(self):
+        pass
+
+
+class RecorderFactory(object):
+
+    def __init__(self):
+        self._builder = {}
+
+    def register_format(self, key, builder):
+        self._builder[format] = creator
+
+    def create(self, key, **kwags):
+        builder = self._builder.get(key)
+        if not builder:
+            raise ValueError(key)
+        return builder(**kwags)
+
+
+class SpencerRecorder(object):
+    def __init__(self):
+        pass
+
+
+class GazeboRecorder(object):
+    def __init__(self):
+        pass
+
+
+
 class PeopleRecorder(object):
 
     def __init__(self, dict_path = None,  picture_tag = False, sim=True ):

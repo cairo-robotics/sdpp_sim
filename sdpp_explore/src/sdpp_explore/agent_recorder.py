@@ -4,7 +4,7 @@ import rospy
 import pickle
 import random
 import matplotlib.pyplot as plt
-from sklearn import mixture
+#from sklearn import mixture
 
 #from spencer_tracking_msgs.msg import TrackedPersons
 from sensor_msgs.msg import CompressedImage
@@ -18,18 +18,36 @@ import numpy as np
 import math
 
 
-class Recorder(object):
+
+class AgentRecorder(object):
     def __init__(self):
         pass
 
+    def _init_dict(self):
+        pass
 
-class RecorderFactory(object):
+    def record_callback(self):
+        pass
+    
+    def record_local(self):
+        pass
+
+    def record_file(self):
+        pass
+    
+
+
+class AgentTrajFactory(object):
+    """
+    creates AgentTrajectory objects with callback methods that override a base class
+    but what base class should that be?
+    """
 
     def __init__(self):
         self._builder = {}
 
     def register_format(self, key, builder):
-        self._builder[format] = creator
+        self._builder[key] = builder
 
     def create(self, key, **kwags):
         builder = self._builder.get(key)
@@ -38,15 +56,36 @@ class RecorderFactory(object):
         return builder(**kwags)
 
 
-class SpencerRecorder(object):
-    def __init__(self):
+class AgentTrajSpencer(object):
+    def __init__(self, **config):
+        print("initialize AgentTrajSpencer")
+        print("currently not initialized")
+
+
+    def traj_callback(self, msg):
         pass
 
 
-class GazeboRecorder(object):
-    def __init__(self):
+class AgentTrajGazebo(object):
+    def __init__(self, **cargs):
+        
+        rospy.loginfo("initialize AgentTrajGazebo")
+        #default configs for trajectory publisher
+        self. = "test"
+
+        self.__dict__.update(cargs)
+        #rospy.loginfo("AgentTrajGazebo initialized with:")
+
+        print(self.__dict__)
+
+
+
+
+    def traj_callback(self, msg):
         pass
 
+    def init_world(self):
+        pass
 
 
 class PeopleRecorder(object):
@@ -269,8 +308,12 @@ class PeopleViewer(object):
 
 if __name__ == '__main__':
 
-    rospy.init_node("test")
-    test = PeopleViewer("test_dict.pickle")
-    test.print_graph(n_tracks=11)
+    #rospy.init_node("test")
+    #test = PeopleViewer("test_dict.pickle")
+    #test.print_graph(n_tracks=11)
+
+    config_1 = {"test_config": "test2"}
+    test = AgentTrajGazebo(**config_1)
+
 
 

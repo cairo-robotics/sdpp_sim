@@ -19,6 +19,32 @@ from geometry_msgs.msg import TransformStamped, PoseStamped
 OBJ_CLASS_LIST = ["bottle", "cup"]
 
 
+class objClassifierFactory(object):
+
+    def __init__(self):
+        self._builder = {}
+
+    def register_format(self, key, builder):
+        self._builder[key] = builder
+
+    def create(self, key, **kwags):
+        builder = self._builder.get(key)
+        if not builder:
+            raise ValueError(key)    
+        return builder(**kwags)
+
+class gazeboClassifier(object):
+    def __init__(self):
+        pass
+
+
+class darknetSimClassifier(object):
+    def __init__(self):
+        pass
+    
+
+    
+
 class darknetObjectIden(object):
 
     def __init__(self, class_list, hz):

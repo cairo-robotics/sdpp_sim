@@ -1,26 +1,17 @@
 #!/usr/bin/env python3
 
 import rospy
-import pickle
-import random
-import matplotlib.pyplot as plt
+
 import pandas as pd
 import numpy as np
 
-#from sklearn import mixture
-
-#from spencer_tracking_msgs.msg import TrackedPersons
 from nav_msgs.msg import Odometry
-
-from sensor_msgs.msg import CompressedImage
-
-from std_msgs.msg import Int32
-from cv_bridge import CvBridge, CvBridgeError
-
-#import cv2
+from sdpp_explore.srv import AgentTrajRegister, AgentTrajRegisterResponse
 
 import math
-
+import pickle
+import random
+import matplotlib.pyplot as plt
 
 
 class AgentRecorder(object):
@@ -43,12 +34,15 @@ class AgentRecorder(object):
 
 class AgentTrajFactory(object):
     """
-    creates AgentTrajectory objects with callback methods that override a base class
-    but what base class should that be?
+    creates AgentTrajectory objects
     """
 
     def __init__(self):
         self._builder = {}
+        reg_srv = rospy.Service('agent_traj_register', 
+                                AgentTrajRegister,  
+                                self.register_builder_server)
+    
 
     def register_builder(self, key, builder):
         self._builder[key] = builder
@@ -59,6 +53,16 @@ class AgentTrajFactory(object):
         if not builder:
             raise ValueError(key)
         return builder(**configs)
+
+    def register_builder_server(self, req):
+
+        if req.builder ==  AgentTrajGazebo.__name__ & req.key == "gazebo":
+            self.register_builder(req.key, AgentTrajGazebo)
+            return AgentTrajRegisterResponse(True, "gazebo traj registered")
+
+
+        else:
+            return AgentTrajRegister(False, "not valid Agent Trag {} ".format(req))
 
 
 class AgentTrajGazebo(object):
@@ -101,7 +105,6 @@ class AgentTrajGazebo(object):
 
             elif self.recording == False:
                 rospy.logerror("cannot change recording false for type {} invalid argument".format(bool_record))
-
 
     def write_data(self, filename="test"):
         self.set_recording(False)

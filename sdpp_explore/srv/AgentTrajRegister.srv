@@ -1,0 +1,5 @@
+string key
+string builder
+---
+bool success
+string debug

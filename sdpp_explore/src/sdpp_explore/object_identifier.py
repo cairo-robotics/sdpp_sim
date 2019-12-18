@@ -19,7 +19,16 @@ from geometry_msgs.msg import TransformStamped, PoseStamped
 OBJ_CLASS_LIST = ["bottle", "cup"]
 
 
-class objClassifierFactory(object):
+
+class ObjectIdentifer(object):
+
+    def __init__(self):
+        pass
+
+
+
+
+class ObjClassifierFactory(object):
 
     def __init__(self):
         self._builder = {}
@@ -33,7 +42,7 @@ class objClassifierFactory(object):
             raise ValueError(key)    
         return builder(**kwags)
 
-class gazeboClassifier(object):
+class GazeboClassifier(object):
     def __init__(self):
         pass
 

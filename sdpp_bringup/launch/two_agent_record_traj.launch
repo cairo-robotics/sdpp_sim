@@ -3,7 +3,7 @@
     <arg name="map_file" default="$(find sdpp_gazebo)/config/maps/narrow_3_goal_10x10.yaml" />
     <arg name="world" default="$(find sdpp_gazebo)/worlds/narrow_3_goal_10x10.world"/>
     <arg name="agent_0" value="true" />
-    <arg name="agent_1" value="true" />
+    <arg name="agent_1" value="false" />
 
     
     <!-- dummy global map -->
@@ -22,16 +22,16 @@
     <group ns="human_0" if="$(arg agent_0)">
         <include file="$(find sdpp_human_navigation)/launch/human_multi.launch">
             <arg name="multi_bot" value="human_0"/>
-            <arg name="x_pos" value="9.0"/>
-            <arg name="y_pos" value="5.0"/>
         </include>
     </group>
 
-    <group ns="human_1" if="$(arg agent_1)">
+    <group ns="human_sdpp" if="$(arg agent_1)">
         <include file="$(find sdpp_human_navigation)/launch/human_multi.launch">
-            <arg name="multi_bot" value="human_1"/>
-            <arg name="x_pos" value="9.0"/>
-            <arg name="y_pos" value="9.0"/>
+            <arg name="multi_bot" value="human_sdpp"/>
+            <arg name="x_pos" value="4.0"/>
+            <arg name="y_pos" value="4.0"/>
+            <arg name="param_folder" value="human_sdpp" />
+
         </include>
     </group>
     
@@ -39,7 +39,8 @@
     <rosparam command="load" file="$(find sdpp_testing_fw)/config/agent_waypoints/set_1.yaml"/>
     <rosparam command="load" file="$(find sdpp_gazebo)/config/maps/narrow_3_goal_loc.yaml"/>
 
-    <node pkg="sdpp_testing_fw" type="record_movement.py" name="recording_node"/>
+
+    <!--node pkg="sdpp_testing_fw" type="record_movement.py" name="recording_node"/-->
 
 
     <group if="$(arg open_rviz)">

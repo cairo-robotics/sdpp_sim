@@ -1,34 +1,44 @@
+.. |br| raw:: html
+
+   <br />
+
 #############
-SDPP Exploit
+SDPP Explore
 #############
+Place holder algorithm description
 
 ***************
 Python Modules
 ***************
 
 
-data_parse
-===========
+agent_recoder module
+====================
 
-Recorder:
+|br| The agent recorder is built as an object factory with a managing state machine.
+|br| Configurations for each managed object are passed in as a dictionary encompased within 
+a grouping dictionary.
 
+ .. code-block:: python
 
-RecorderFactory:
+    {"agent_recorder": {"config_0": x, "config_1": y},
+     "gazebo_traj"   : {"config_0": m, "config_1": n}}
 
+.. automodule:: sdpp_explore.agent_recorder
+    :members:
 
-SpencerRecorder:
+object_identifier module
+========================
 
+Place holder text
 
-GazeboRecorder:
+.. automodule:: sdpp_explore.object_identifier
+    :members:
 
+object_association module
+=========================
 
-People Veiwer:
+Place holder text
 
-
-
-object_association
-==================
-
-
-object_identifier
-==================
+.. automodule:: sdpp_explore.object_association
+    :members:

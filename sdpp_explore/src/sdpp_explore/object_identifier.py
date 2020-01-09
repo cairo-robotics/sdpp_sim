@@ -29,14 +29,23 @@ class ObjectIdentifer(object):
 
 
 class ObjClassifierFactory(object):
+    """ object classification factory creates objects to classify objects in
+    scene based on registerable methods this includes:\n
+    Gazebo: direct subsription of topics from gazebo \n
+    darknetSim: Yolo classifier tuned for in sim (extra filtering)\n
+    darknet: Yolo classifier using real world data\n
+    """
 
     def __init__(self):
+        """create builder dictionary"""
         self._builder = {}
 
     def register_format(self, key, builder):
+        """register builder TODO make a check for class availability """
         self._builder[key] = builder
 
     def create(self, key, **kwags):
+        """"create and return the object"""
         builder = self._builder.get(key)
         if not builder:
             raise ValueError(key)    
@@ -55,6 +64,7 @@ class darknetSimClassifier(object):
     
 
 class darknetObjectIden(object):
+    """an example docstring """
 
     def __init__(self, class_list, hz):
         self.hz = hz
@@ -147,7 +157,7 @@ class darknetObjectIden(object):
             return object_pose
 
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
-            print "no go on transform" + str(e)
+            print("no go on transform" + str(e))
             pass
 
 
@@ -176,7 +186,7 @@ class darknetObjectIden(object):
 
         for name in self.class_list:
             if name == object:
-                print name
+                print(name)
                 return True
         return False
 
@@ -191,7 +201,7 @@ def BB_callback(msg):
 
     midpoint[1] = (object.ymax + object.ymin)/2
 
-    print midpoint
+    print(midpoint)
 
     ros_depth_image = rospy.wait_for_message("/movo_camera/sd/image_depth", Image)
 
@@ -199,7 +209,7 @@ def BB_callback(msg):
 
     depth_midpoint =  cv_depth_image[midpoint[0], midpoint[1]]
 
-    print depth_midpoint
+    print(depth_midpoint)
 
 
     t = geometry_msgs.msg.TransformStamped()

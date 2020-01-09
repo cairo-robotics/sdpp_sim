@@ -16,26 +16,66 @@ import matplotlib.pyplot as plt
 
 
 class AgentRecorder(object):
-    def __init__(self, **configs):
+    """
+    state machine that controlls the process of recording agent trajectories
 
+
+    keyword arguments
+    -----------------
+    gazebo: dict
+        dictionary of gazebo configs 
+        (see AgentTraGazebo class below)
+    
+    spencer: dict
+        dictionary of spencer people tracker configs
+
+    agent_dict: dict
+        dictionary containing the active agent recording objects.
+        keys for agents are the agent's ROS namespace
+
+    AgentRecorder: dict
+        dictionary of Agent recorder default attributes all keyword arguments
+        below are keys of this dictionary
+
+    agent_builders: dict
+        key and obj builder pairs of valid agent builders
+        
+    timer_callback_delay: int
+        how often (seconds) to callback to state machine
+
+    """
+    def __init__(self, **configs):
+        
+        #degault attributes
         self.agent_builders = {'gazebo': AgentTrajGazebo}
         self.agent_traj_gazebo_config = {}
         self.timer_callback_delay = 5
-        
+        self.agent_recorder_state = "start"
+        # update atributes from config
         self.__dict__.update(configs["AgentRecorder"])
 
         self.agent_dict = {}
-        #start factory and add register builders 
+        #start factory and register degault builders 
         self.agent_factory = AgentTrajFactory()
         for key in self.agent_builders:
             builder = self.agent_builders[key]
             self.agent_factory.register_builder(key, builder)
-        
-        
+              
+        self.timed = rospy.Timer(rospy.Duration(self.timer_callback_delay), 
+                                 self.agent_recorder_state_machine())
+
+
+    def agent_recorder_state_machine(self):
+        """
+        state machine for agent recorder currently only calls add_new_agents()
+        """
         self.add_new_agents()
-        #self.timed = rospy.Timer(rospy.Duration(self.timer_callback_delay), self.add_new_agents())
-            
+        pass
+
     def add_new_agents(self):
+        """
+        adds any new agents to the agent dictionary and starts recording
+        """
         
         new_agents = self.scan_odom()
         for agent_tuple in new_agents:
@@ -49,7 +89,14 @@ class AgentRecorder(object):
         """
         scans all the topics for odometry and returns namespace
         of valid new agents
-        return: (agent_namespace, agent_node_origin)
+
+
+        Returns
+        -------
+
+        new_agents: list, tuple
+            tuple list of (agent_namespace, agent_node_origin) that are not 
+            within agent_dict
         """
         published_topics = rospy.get_published_topics()
 
@@ -87,9 +134,9 @@ class AgentRecorder(object):
 
 class AgentTrajFactory(object):
     """
-    creates AgentTrajectory objects
-    includes service builder registration
-    for dynamic loading of ROS traj nodes
+    creates AgentTraj objects for tracking agents. Each agent gets thier own
+    tracker that must be initilalized and registered here. Designed for
+    dynamic loading and unloading of AgentTraj objects
     """
     def __init__(self):
         self._builder = {}
@@ -120,12 +167,26 @@ class AgentTrajFactory(object):
     
 
 class AgentTrajGazebo(object):
-    def __init__(self, **config):
+    """
+    Records trajectories of agents in a gazebo environmets
+
+    keyword args
+    ------------
+        file_loc: string
+                location of where to record traj data
         
+        recording: bool
+                whether recording callback is active
+        
+        agent_ns: string
+                ROS namesapce of agent to be recorded
+    """
+    def __init__(self, **config):
+        #default attributes
         self.agent_ns = "human_0"
         self.recording = True
         self.file_loc = "test/"
-        
+        # update attributes from config
         self.__dict__.update(config)
         rospy.loginfo("begin initialize AgentTrajGazebo.{}".format(self.agent_ns))
         
@@ -135,6 +196,14 @@ class AgentTrajGazebo(object):
         rospy.Subscriber(sub_topic, Odometry, self._traj_callback)
 
     def set_recording(self, bool_record):
+        """
+            method to modify callback recording attribute. give log feedback execution
+
+            arguments
+            ---------
+            bool_record: bool
+                conditional for trajectory recording
+        """
         
         if self.recording == True & bool_record == True:
             rospy.loginfo("continue recording {} traj data".format(self.agent_ns))
@@ -154,12 +223,25 @@ class AgentTrajGazebo(object):
 
         else:
             if self.recording == True:
-                rospy.logerror("cannot change recording true fo type {} invalid argument".format(bool_record))
+                rospy.logerror("cannot change recording true \
+                for type {} invalid argument".format(bool_record))
 
             elif self.recording == False:
-                rospy.logerror("cannot change recording false for type {} invalid argument".format(bool_record))
+                rospy.logerror("cannot change recording false \
+                    for type {} invalid argument".format(bool_record))
 
     def write_data(self, filename="test"):
+        """
+        write data to specified filename currently only writes to location
+        where script was launched from
+
+        keyword args
+        ------------
+            filename: string
+                filename to record data too auto appends file extension
+
+
+        """
         self.set_recording(False)
         traj_data = pd.DataFrame(self.data)
         traj_data.to_pickle(filename + ".p")
@@ -181,7 +263,13 @@ class AgentTrajSpencer(object):
         print("initialize AgentTrajSpencer")
         print("currently not initialized")
 
-    def traj_callback(self, msg):
+    def set_rcording(self, bool_record):
+        pass
+
+    def write_data(self, msg):
+        pass
+    
+    def _traj_callback(self, msg):
         pass
 
 
@@ -203,6 +291,3 @@ if __name__ == '__main__':
     rospy.spin()
 
     #test = AgentTrajGazebo(**config_1)
-
-
-

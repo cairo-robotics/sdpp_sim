@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import rospy
 import pickle
 import numpy as np
@@ -22,10 +21,10 @@ class TrajAgentInterface(object):
 
         suffix = self.odom_topic.replace("/", "'")
         self.filename = self.file_prefix + suffix
-        self.odom_array = np.array(Odometry())
+        self.odom_array = []
 
-        rospy.Subscriber(self.odom_topic, Odometry, self.traj_callback)
 
+        rospy.Subscriber(self.odom_topic + "/odom", Odometry, self.traj_callback)
     @staticmethod
     def format_kwags(kwargs):
         if 'odom_topic' not in kwargs:
@@ -47,16 +46,17 @@ class TrajAgentInterface(object):
 
     def traj_callback(self, msg):
         if self.recording:
-            np.append(self.odom_array, msg)
+            print(msg)
+            self.odom_array.append(msg)
 
     def write_pickle(self):
         rospy.loginfo("pickling file: " + self.filename)
-        pickle.dump(self.__dict__, open(self.filename, "wb"))
+        pickle.dump(self.odom_array, open(self.filename +".p", "wb"))
         rospy.loginfo("finished pickling file: " + self.filename)
 
     def read_pickle(self):
         rospy.loginfo("unpickling file: " + self.filename)
-        self.__dict__.update(pickle.load(open(self.filename, "rb")))
+        self.__dict__.update(pickle.load(open(self.filename + ".p", "rb")))
         rospy.loginfo("unpicked file: " + self.filename)
 
 
@@ -112,9 +112,9 @@ class Measurements(object):
 
 if __name__ == "__main__":
     
-    rospy.init_node("recorder_node")
+    rospy.init_node("record_node_isolated")
 
-    topic_names = ["human_0", "human_sdpp"]
+    topic_names = ["human_0", "human_1"]
 
     msm_kwags = {"odom_topic_array": topic_names,
                "file_prefix": "test_",

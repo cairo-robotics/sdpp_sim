@@ -21,6 +21,11 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('../../sdpp_explore/src'))
+sys.path.insert(0, os.path.abspath('../../sdpp_navigation/src'))
+sys.path.insert(0, os.path.abspath('../../sdpp_testing_fw/src'))
+
+
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -38,7 +43,10 @@ extensions = [
 
 # Add any paths that contain templates here, relative to this directory.
 autodoc_mock_imports = ["rospkg", "catkin_pkg", "darknet_ros_msgs", "tf2_ros",
-                        "pandas", "matplotlib", "logger", "seaborn" ]
+                        "pandas", "matplotlib", "logger", "seaborn", "rospy", 
+                        "nav_msgs", "sensor_msgs", "sdpp_explore.srv", "cv_bridge",
+                        "tf", "tf2_msgs", "geometry_msgs", "rosparam", "actionlib",
+                        "move_base_msgs" ]
 templates_path = ['_templates']
 
 

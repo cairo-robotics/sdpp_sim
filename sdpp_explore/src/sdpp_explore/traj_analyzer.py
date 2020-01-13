@@ -67,7 +67,6 @@ class trajAnalyzer(object):
 class trajLoader(object):
     """
     loads trajectories from saved pickled files
-    #TODO create loader
 
     all data is pulled as a list of individual trajectories
 

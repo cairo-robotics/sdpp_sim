@@ -9,6 +9,8 @@ from sdpp_testing_fw.agent_action_client import AgentActionClient
 
 if __name__ == '__main__':
 
+    #TODO (45) fully load configs from yamls
+
     rospy.init_node("move_agents")
 
     waypoints_human_0 = rosparam.get_param("human_0/waypoints")

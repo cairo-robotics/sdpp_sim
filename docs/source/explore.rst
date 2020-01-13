@@ -19,7 +19,9 @@ agent_recoder module
 |br| Configurations for each managed object are passed in as a dictionary encompased within 
 a grouping dictionary.
 
- .. code-block:: python
+.. graphviz:: ../../sdpp_explore/src/sdpp_explore/classes.dot
+
+.. code-block:: python
 
     {"agent_recorder": {"config_0": x, "config_1": y},
      "gazebo_traj"   : {"config_0": m, "config_1": n}}

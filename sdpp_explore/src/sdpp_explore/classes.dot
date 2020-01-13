@@ -1,0 +1,9 @@
+digraph "classes" {
+charset="utf-8"
+rankdir=BT
+"0" [label="{AgentRecorder|agent_builders : dict\lagent_dict : dict\lagent_factory\lagent_recorder_state : str\lagent_traj_gazebo_config : dict\ltimed\ltimer_callback_delay : int\l|add_new_agents()\lagent_recorder_state_machine()\lscan_odom()\l}", shape="record"];
+"1" [label="{AgentTrajFactory|\l|create(key)\lregister_builder(key, builder)\lregister_builder_server(req)\l}", shape="record"];
+"2" [label="{AgentTrajGazebo|agent_ns : str\ldata : list\lfile_loc : str\lrecording : bool\l|set_recording(bool_record)\lwrite_data(filename)\l}", shape="record"];
+"3" [label="{AgentTrajSpencer|\l|set_rcording(bool_record)\lwrite_data(msg)\l}", shape="record"];
+"1" -> "0" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="1", style="solid"];
+}

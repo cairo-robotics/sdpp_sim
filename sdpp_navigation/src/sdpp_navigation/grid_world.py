@@ -29,6 +29,10 @@ class Cell(object):
 
 class GridWorld(object):
 
+    """
+        TODO (60) 2 Document Grid world implementation
+    """
+
     def __init__(self, static_map, world_bounds_cols, world_bounds_rows):
 
         self.world_bounds_rows = world_bounds_rows
@@ -154,6 +158,10 @@ class GridWorld(object):
 
 
 class ValueIterationAlgo(object):
+    """
+    TODO (60) 2 Document class ValueIterationWeighting
+
+    """
     def __init__(self, discount_factor, world, epsilon=0.001):
         self.discount_factor = discount_factor
         self.world = world
@@ -196,7 +204,60 @@ class ValueIterationAlgo(object):
     def __repr__(self): return self.__str__()
 
 
+
+# TODO (180) miscelanious level one work (will be found later)
+    
+# TODO (120) 2 miscelanious level 2 work
+
+class ValueIterationWeighting_multi(object):
+    """"
+    TODO (30)1 Brainstorm  implementation
+
+    TODO (30) 1 timed callback for map publish
+
+    TODO (40) 2 time logging of calculations
+
+    methods
+    -------
+
+    TODO (30) 1 new_agent(agent_name)
+
+    TODO (30) 1  kill_agent(agent_name)
+
+    TODO (30) 2 available_agents()
+
+    TODO (30) 1 spawn_valueiter_weight 
+
+
+    TODO (40) build_VI_World(
+        take from the VIW class
+
+    """
+
+
 class ValueIterWeighting(object):
+    """
+    does valueiteration weighting per agent
+    
+    TODO (45) 1 Document design VIW
+
+    TODO (30) 1 Brainstorm 
+
+    TODO (40) 1 remove path mathcing callback
+
+   
+
+    keyword arguments
+    -----------------
+    
+
+    methods
+    -------
+
+
+
+
+    """
 
     def __init__(self, static_map_dict=None, pickle_file=None,  **kwags):
 

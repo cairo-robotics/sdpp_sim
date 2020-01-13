@@ -43,7 +43,15 @@ class AgentRecorder(object):
     timer_callback_delay: int
         how often (seconds) to callback to state machine
 
+    #TODO (60) add service from record movement script for stopping starting recorders
+
+    methods
+    -------
+    #TODO (60) pickle_data(folder)]
+        pickle the data for later use.
+
     """
+
     def __init__(self, **configs):
         
         #degault attributes
@@ -180,12 +188,33 @@ class AgentTrajGazebo(object):
         
         agent_ns: string
                 ROS namesapce of agent to be recorded
+
+        agent_name: string
+                same as ROS namespace unless named
+
+        room: string
+                location where traj was recorded
+
+
+    attributes
+    ----------
+        start_time: int
+                in seconds based on ROS time
+
+        stop_time: int
+                in seconds based on ROS time
+
+    #TODO (15) add room value to data set
+        
     """
     def __init__(self, **config):
         #default attributes
         self.agent_ns = "human_0"
         self.recording = True
         self.file_loc = "test/"
+        self.agent_name = self.agent_ns
+        self.start_time = NULL
+        self.stop_time = NULL
         # update attributes from config
         self.__dict__.update(config)
         rospy.loginfo("begin initialize AgentTrajGazebo.{}".format(self.agent_ns))
@@ -198,11 +227,12 @@ class AgentTrajGazebo(object):
     def set_recording(self, bool_record):
         """
             method to modify callback recording attribute. give log feedback execution
-
             arguments
             ---------
             bool_record: bool
                 conditional for trajectory recording
+
+            #TODO (30) add stop and start times
         """
         
         if self.recording == True & bool_record == True:
@@ -240,7 +270,7 @@ class AgentTrajGazebo(object):
             filename: string
                 filename to record data too auto appends file extension
 
-
+        #TODO (60)expand saved data types to defined structure
         """
         self.set_recording(False)
         traj_data = pd.DataFrame(self.data)

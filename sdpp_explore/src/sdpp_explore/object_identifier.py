@@ -20,7 +20,38 @@ OBJ_CLASS_LIST = ["bottle", "cup"]
 
 
 
-class ObjectIdentifer(object):
+class ObjectIdentiferAssoc(object):
+    """
+        Object Association analyzer. will analyze the array based on 
+
+        load in goal proposals and object assoc
+
+        TODO (30) 1 brainstorm implementation
+
+        Keyword arguments
+        ------------------
+
+
+
+        methods
+        -------
+
+        TODO (20) 1 load_obj_assoc()
+            load the object association array
+
+        TODO (30) 1 load_traj_goals()
+            load the proposed trajectory goals
+        
+        TODO (30) 1 load_object_array() 
+            load array of scene objects
+
+        TODO (60) 1 goal_from_assoc(objects)
+            goals based on on
+        
+        TODO (60) 2 goal_from_held_object(object)
+        
+    
+    """
 
     def __init__(self):
         pass
@@ -52,6 +83,31 @@ class ObjClassifierFactory(object):
         return builder(**kwags)
 
 class GazeboClassifier(object):
+    """
+    looks at a scene from a wizard of oz level and parses in the objects
+
+    keyword arguments
+    -----------------
+
+    list_objects: list
+        list of objects to detect
+
+    gazebo_ns: string
+        namespace to look for objects
+    
+    list_found_objects(): list
+        list of found objects
+
+
+    
+    methods
+    -------
+
+    TODO (45) 1 fetch_object_loc():
+        return a list of objects and their locations filtered by list_objects
+
+
+    """
     def __init__(self):
         pass
 
@@ -61,10 +117,13 @@ class darknetSimClassifier(object):
         pass
     
 
-    
-
 class darknetObjectIden(object):
-    """an example docstring """
+    """
+
+
+    
+    
+    """
 
     def __init__(self, class_list, hz):
         self.hz = hz

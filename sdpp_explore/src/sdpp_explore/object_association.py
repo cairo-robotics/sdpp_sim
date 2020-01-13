@@ -10,7 +10,57 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-class ObjectAssociation(object):
+
+
+class ObjectAssocManager(ObjectAssoc):
+    """
+        manages the object associtaion array for
+        don't think I'm going to do this anymore
+        might consider doing this at a later time.
+
+        Keyword arguments
+        -----------------
+
+        save_file: string
+            location to save file
+
+
+    """
+
+
+
+
+class ObjectAssoc(object):
+    """
+    Object association array
+
+    keyword arguments:
+    ------------------
+    init_array: np.array(NxN)
+        an initial array to work from
+
+    Methods
+    -------
+
+    TODO (15) 1 new_array()
+
+    TODO (30) 1 load_array(filename)
+
+    TODO (30) 1 save_array(filename)
+
+    TODO (15) 1 add_assoc(obj1, obj2):
+        adds and association between two objects
+
+    TODO (15) 1 sub_assoc(obj1, obj2):
+        removes association instance
+
+    TODO (30) 1 marginal_assoc(obj1, obj2):
+        marginal probability of assoctiation
+
+    TODO (30) 1 conditional_assoc(obj1, obj2):
+        conditional association
+
+    """
 
     def __init__(self, assoc_obj, file_path="default.pickle", ros_error=True, ):
         self.assoc_obj = assoc_obj

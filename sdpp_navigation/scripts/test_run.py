@@ -12,6 +12,47 @@ from sdpp_navigation.grid_world import GridWorld, ValueIterationAlgo, ValueIterW
 from sdpp_navigation.ros_wrappers import LoadMap
 
 
+
+class sdppWorld(object):
+
+    """
+    encompasing mindstate for sdpp planning
+     
+
+    keyword args
+    -----------
+
+    static_map: 
+    
+    sdpp_pub_topic:
+
+
+    methods
+    -------
+
+    TODO (60) 1 build_room()
+        build the room based off goal locations
+
+    TODO (30) 1 save_room()
+        save the room 
+
+    TODO (30) 1 load_room()
+        load room from file
+
+    TODO (30) 1 init_VIW_instance()
+
+    TODO (90) 1 Miscelanious level 1 work
+
+    TODO (120) 2 miscelnaious level 2 work
+
+
+
+
+    """
+
+    def __init__(self):
+        pass
+
 def array_to_costmap(array):
 
     CostMap= OccupancyGrid()

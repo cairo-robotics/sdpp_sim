@@ -5,9 +5,9 @@ import rospy
 
 if __name__ == '__main__':
 
+    #TODO (45) load in config data from yaml
+
     rospy.init_node("test")
-    #test = PeopleViewer("test_dict.pickle")
-    #test.print_graph(n_tracks=11)
 
 
     agent_recorder_configs = {"test": "agent_record_test"}

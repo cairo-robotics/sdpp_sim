@@ -12,7 +12,6 @@ from sdpp_explore.srv import AgentTrajRegister, AgentTrajRegisterResponse
 import math
 import pickle
 import random
-import matplotlib.pyplot as plt
 
 
 class AgentRecorder(object):
@@ -43,7 +42,15 @@ class AgentRecorder(object):
     timer_callback_delay: int
         how often (seconds) to callback to state machine
 
+    #TODO (60) add service from record movement script for stopping starting recorders
+
+    methods
+    -------
+    #TODO (60) pickle_data(folder)]
+        pickle the data for later use.
+
     """
+
     def __init__(self, **configs):
         
         #degault attributes
@@ -180,12 +187,33 @@ class AgentTrajGazebo(object):
         
         agent_ns: string
                 ROS namesapce of agent to be recorded
+
+        agent_name: string
+                same as ROS namespace unless named
+
+        room: string
+                location where traj was recorded
+
+
+    attributes
+    ----------
+        start_time: int
+                in seconds based on ROS time
+
+        stop_time: int
+                in seconds based on ROS time
+
+    #TODO (15) add room value to data set
+        
     """
     def __init__(self, **config):
         #default attributes
         self.agent_ns = "human_0"
         self.recording = True
         self.file_loc = "test/"
+        self.agent_name = self.agent_ns
+        self.start_time = None
+        self.stop_time = None
         # update attributes from config
         self.__dict__.update(config)
         rospy.loginfo("begin initialize AgentTrajGazebo.{}".format(self.agent_ns))
@@ -198,11 +226,12 @@ class AgentTrajGazebo(object):
     def set_recording(self, bool_record):
         """
             method to modify callback recording attribute. give log feedback execution
-
             arguments
             ---------
             bool_record: bool
                 conditional for trajectory recording
+
+            #TODO (30) add stop and start times
         """
         
         if self.recording == True & bool_record == True:
@@ -223,11 +252,11 @@ class AgentTrajGazebo(object):
 
         else:
             if self.recording == True:
-                rospy.logerror("cannot change recording true \
+                rospy.logerr("cannot change recording true \
                 for type {} invalid argument".format(bool_record))
 
             elif self.recording == False:
-                rospy.logerror("cannot change recording false \
+                rospy.logerr("cannot change recording false \
                     for type {} invalid argument".format(bool_record))
 
     def write_data(self, filename="test"):
@@ -240,7 +269,7 @@ class AgentTrajGazebo(object):
             filename: string
                 filename to record data too auto appends file extension
 
-
+        #TODO (60)expand saved data types to defined structure
         """
         self.set_recording(False)
         traj_data = pd.DataFrame(self.data)
@@ -280,14 +309,19 @@ if __name__ == '__main__':
     #test = PeopleViewer("test_dict.pickle")
     #test.print_graph(n_tracks=11)
 
-    config_1 = {"test_config": "test2"}
+    config_1 = {"agent_ns": "human_0",
+                "file_loc": ""}
 
     traj_fact = AgentTrajFactory()
 
     traj_fact.register_builder('gazebo', AgentTrajGazebo)
 
-    traj_fact.create("gazebo", **config_1)
+    human_0_obj = traj_fact.create("gazebo", **config_1)
 
-    rospy.spin()
+    rospy.sleep(5)
+
+    human_0_obj.write_data()
+
+
 
     #test = AgentTrajGazebo(**config_1)

@@ -214,13 +214,8 @@ class AgentTrajGazebo(object):
         self.recording = True
         self.file_loc = "test/"
         self.agent_name = self.agent_ns
-<<<<<<< HEAD
         self.start_time = None
         self.stop_time = None
-=======
-        self.start_time = NULL
-        self.stop_time = NULL
->>>>>>> simplify_structure
         # update attributes from config
         self.__dict__.update(config)
         rospy.loginfo("begin initialize AgentTrajGazebo.{}".format(self.agent_ns))

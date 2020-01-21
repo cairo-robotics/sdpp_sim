@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import rospkg
 import os
 
 import pandas as pd
@@ -11,8 +12,8 @@ from sdpp_explore.srv import AgentTrajRegister, AgentTrajRegisterResponse
 
 import math
 import pickle
+import yaml
 import random
-import matplotlib.pyplot as plt
 
 
 class AgentRecorder(object):
@@ -213,13 +214,14 @@ class AgentTrajGazebo(object):
         self.recording = True
         self.file_loc = "test/"
         self.agent_name = self.agent_ns
-        self.start_time = NULL
-        self.stop_time = NULL
+        self.start_time = None
+        self.stop_time = None
         # update attributes from config
         self.__dict__.update(config)
         rospy.loginfo("begin initialize AgentTrajGazebo.{}".format(self.agent_ns))
         
-        self.data = []
+        self.data = {"list_odom": [],
+                     "agent_name": self.agent_name}
 
         sub_topic = self.agent_ns + "/odom"
         rospy.Subscriber(sub_topic, Odometry, self._traj_callback)
@@ -253,14 +255,14 @@ class AgentTrajGazebo(object):
 
         else:
             if self.recording == True:
-                rospy.logerror("cannot change recording true \
+                rospy.logerr("cannot change recording true \
                 for type {} invalid argument".format(bool_record))
 
             elif self.recording == False:
-                rospy.logerror("cannot change recording false \
+                rospy.logerr("cannot change recording false \
                     for type {} invalid argument".format(bool_record))
 
-    def write_data(self, filename="test"):
+    def write_data(self, filename="test", pkg="sdpp_explore"):
         """
         write data to specified filename currently only writes to location
         where script was launched from
@@ -273,8 +275,71 @@ class AgentTrajGazebo(object):
         #TODO (60)expand saved data types to defined structure
         """
         self.set_recording(False)
-        traj_data = pd.DataFrame(self.data)
-        traj_data.to_pickle(filename + ".p")
+
+        data_path = self._file_path_data(pkg)
+
+        full_path = data_path + filename
+
+        self._write_yaml(self.data, full_path)
+
+    
+    def _file_path_data(self, pkg):
+        """
+        returns the file path to the config folder of a package.
+        parameters
+        ----------
+        pkg: string
+            name of package to get filepath for
+        return
+        ------
+        filepath: string
+            the absolute path of desired package config folder
+        """
+        r = rospkg.RosPack()
+        filepath = r.get_path(pkg)
+        filepath = filepath + "/data/"
+        
+        return filepath
+
+
+
+    def _write_yaml(self, data, filename):
+        """
+        save the array as a yaml file for later use
+    
+        parameters
+        ----------
+        filename: string
+            filename to save *dict_array_assoc* under
+       """
+        
+        filename = self._yaml_exentsion(filename)
+        with open(filename, "w") as outfile:
+            yaml.dump(data, outfile, default_flow_style=False)
+
+        
+
+    def _yaml_exentsion(self, filename):
+        """
+        add ".yaml" extension to filename if needed
+        parameters
+        ----------
+        filename: string
+            input filename for checking
+        return
+        ------
+        filename: string
+            filename with .yaml extension
+        """
+
+        if filename.endswith(".yaml"):
+            pass
+        else:
+            filename += ".yaml"
+        return filename
+
+        
+
 
     def _traj_callback(self, msg):
         if self.recording == True:
@@ -284,7 +349,7 @@ class AgentTrajGazebo(object):
     
     def _record_data(self, msg):
         """this method is kinda meh"""
-        self.data.append(msg)
+        self.data["list_odom"].append(msg)
         
 
 
@@ -310,14 +375,21 @@ if __name__ == '__main__':
     #test = PeopleViewer("test_dict.pickle")
     #test.print_graph(n_tracks=11)
 
-    config_1 = {"test_config": "test2"}
+    config_1 = {"agent_ns": "human_0",
+                "file_loc": ""}
+    config_2 {"agent_ns": "human_0",
+                "file_loc": ""}
 
     traj_fact = AgentTrajFactory()
 
     traj_fact.register_builder('gazebo', AgentTrajGazebo)
 
-    traj_fact.create("gazebo", **config_1)
+    human_0_obj = traj_fact.create("gazebo", **config_1)
 
-    rospy.spin()
+    rospy.sleep(5)
+
+    human_0_obj.write_data()
+
+
 
     #test = AgentTrajGazebo(**config_1)

@@ -1,18 +1,16 @@
 #!/usr/bin/env python
+import rospkg
+import rospy
 
-from logger import ROSErrorLogger, PrintErrorLogger
-import pickle
+import yaml
+
 import numpy as np
-
-import matplotlib
-
-import matplotlib.pyplot as plt
+import matplotlib.plot as plt
 import seaborn as sns
 
 
 
-
-class ObjectAssocManager(ObjectAssoc):
+class ObjectAssocManager(object):
     """
         manages the object associtaion array for
         don't think I'm going to do this anymore
@@ -21,11 +19,11 @@ class ObjectAssocManager(ObjectAssoc):
         Keyword arguments
         -----------------
 
-        save_file: string
-            location to save file
 
 
     """
+    def __init__(self):
+        pass
 
 
 
@@ -39,20 +37,8 @@ class ObjectAssoc(object):
     init_array: np.array(NxN)
         an initial array to work from
 
-    Methods
-    -------
-
-    TODO (15) 1 new_array()
-
-    TODO (30) 1 load_array(filename)
-
-    TODO (30) 1 save_array(filename)
-
-    TODO (15) 1 add_assoc(obj1, obj2):
-        adds and association between two objects
-
-    TODO (15) 1 sub_assoc(obj1, obj2):
-        removes association instance
+    Note
+    ----
 
     TODO (30) 1 marginal_assoc(obj1, obj2):
         marginal probability of assoctiation
@@ -62,70 +48,234 @@ class ObjectAssoc(object):
 
     """
 
-    def __init__(self, assoc_obj, file_path="default.pickle", ros_error=True, ):
-        self.assoc_obj = assoc_obj
-        self.file_path = file_path
+    def __init__(self, **config):
+        #degault attributes
+        self.list_objects = ["table", "glass", "coffee machine"]
+        self.filename = "default"
+        self.pkg_name = "sdpp_explore"
+        self.dict_array_assoc = None             #do checks for null
+        #update attributes from config
+        self.__dict__.update(config)
 
-        if ros_error:
-            self.logger = ROSErrorLogger()
 
+
+    def new_array(self, list_objects):
+        """
+        create new array based on object list
+
+        parameters
+        ----------
+        list_objects: list
+            ordred list of objects to be associated
+
+        return
+        ------
+        array_assoc: dict
+            dictionary containing *object_list* and *array*
+        """
+
+        length = len(list_objects)
+
+        return {"array": np.zeros((length, length)),
+                "list_objects": list_objects}
+        
+    def file_path_config(self, pkg):
+        """
+        returns the file path to the config folder of a package.
+
+        parameters
+        ----------
+        pkg: string
+            name of package to get filepath for
+
+        return
+        ------
+        filepath: string
+            the absolute path of desired package config folder
+        """
+        r = rospkg.RosPack()
+        filepath = r.get_path(pkg)
+        filepath = filepath + "/config/"        
+
+        return filepath
+
+    def save_to_config(self, pkg, filename):
+        """
+        saves object's *dict_array_assoc* to specified pakcage config filder
+
+        parameters
+        ----------
+        pkg: string
+            package to save configs under
+        
+        filename: string
+            name of config file to be used
+        """
+        config_path = self.file_path_config(pkg) + "/config/"
+        self._save_dict_array_yaml(config_path + "filename", self.dict_array_assoc)
+
+    def load_from_config(self, pkg, filename):
+        """
+        loads desired *dict_array_assoc* array to the object attribute
+
+        parameters
+        ----------
+        pkg: string
+            package to save configs under
+        
+        filename: string
+            name of config file to be used
+        """
+        config_path = self.file_path_config(pkg) + "/config/"
+        self._load_dict_array_yaml(config_path + filename)
+
+    def _yaml_extension(self, filename):
+        """
+        add ".yaml" extension to filename if needed
+
+        parameters
+        ----------
+        filename: string
+            input filename for checking
+
+        return
+        ------
+        filename: string
+            filename with .yaml extension
+
+        """
+        if filename.endswith(".yaml"):
+            pass
         else:
-            self.logger = PrintErrorLogger()
+            filename += ".yaml"
+        return filename
+        
+    def _load_dict_array_yaml(self, filename):
+        """
+        
+        parameters
+        ----------
+        filename: string
+            filename to load obejct under
 
-    @classmethod
-    def load_pickle_obj(cls, file_path="default.pickle", ros_error=True, ):
-        file = open(file_path, "r")
-        assoc_obj = pickle.load(file)
-        return cls(assoc_obj, ros_error=ros_error, file_path=file_path)
+        return
+        ------
+        dict_array_assoc: dict
+            dictionary containing *list_objects* and *array*
 
-    @classmethod
-    def empty_inference_obj(cls, objects, ros_error=True):
-        length = len(objects)
-        assoc_obj = {"assoc_array": np.zeros((length, length)),
-                     "object_list": objects}
-        return cls(assoc_obj, ros_error=ros_error)
+        """
+        filename = self._yaml_extension(filename)
+
+        fp = open(filename)
+        data = yaml.load(fp)
+        return data
+
+    def _save_dict_array_yaml(self, filename, dict_array):
+        """
+        save the array as a yaml file for later use
+    
+        parameters
+        ----------
+        filename: string
+            filename to save *dict_array_assoc* under
+
+       """
+        filename = self._yaml_extension(filename)
+
+        with open(filename, "w") as outfile:
+            yaml.dump(dict_array, outfile, default_flow_style=False)
+
 
     def _obj_index(self, obj):
-        try:
-            return self.assoc_obj["object_list"].index(obj)
+        """
+        finds index of object based on object name
 
-        except ValueError as e:
-            message = "obj index lookup error: " + str(e)
-            self.logger.log_error(message)
-            return None
+        parameters
+        ----------
+        obj: srting
+            name of object to be checked for index
 
-    def add_assoc_inst(self, frm, to):
+        Return
+        ------
+        index: int
+            interger index of object within list
 
-        self.assoc_obj["assoc_array"]
+        """
 
-        indexFrm = self._obj_index(frm)
-        indexTo = self._obj_index(to)
+        return self.dict_array_assoc["list_objects"].index(obj)
+       
+    def add_assoc(self, obj1, obj2):
+        """
+        adds instance of 2 objects association
 
-        if indexFrm is None or indexTo is None:
-            self.logger.log_error("unable to resolve obj assoc index bad")
-            return None
+        parameters
+        ----------
+        obj1: string
+            first objects
 
-        self.assoc_obj["assoc_array"][indexFrm, indexTo] += 1
+        obj2: string
+            second object
+        """
+        index_obj1 = self._obj_index(obj1)
+        index_obj2 = self._obj_index(obj2)
+
+        self.dict_array_assoc["assoc_array"][index_obj1, index_obj2] += 1
+        self.dict_array_assoc["assoc_array"][index_obj2, index_obj1] += 1
+
+    def sub_assoc(self, obj1, obj2):
+        """
+        removes instance of 2 objects association
+
+        parameters
+        ----------
+        obj1: string
+            first objects
+
+        obj2: string
+            second object
+        """
+        index_obj1 = self._obj_index(obj1)
+        index_obj2 = self._obj_index(obj2)
+
+        self.dict_array_assoc["assoc_array"][index_obj1, index_obj2] -= 1
+        self.dict_array_assoc["assoc_array"][index_obj2, index_obj1] -= 1
 
 
-    def pickle_me(self, file_path=None):
+    def conditional_assoc(self, obj1, obj2):
+        """
+        the conditional probability that obj1 is associated with obj2
+        P(obj1 | obj2)
 
-        if file_path == None:
-            file_path = self.file_path
+        parameters
+        ----------
+        obj1: string
+            first objects
 
-        with open(file_path, 'w+') as handle:
-            pickle.dump(self.assoc_obj, handle,  protocol=pickle.HIGHEST_PROTOCOL)
+        obj2: string
+            second object
 
-    def print_array(self):
+        return
+        ------
+        int
+            value
 
-        self.logger.log_info(self.assoc_obj["assoc_array"])
+        """
+        index_obj1 = self._obj_index(obj1)
+        index_obj2 = self._obj_index(obj2)
+
+        assoc_1_2 = self.dict_array_assoc["assoc_array"][index_obj1, index_obj2]
+
+        counts_2 = np.sum(self.dict_array_assoc["assoc_array"][index_obj2])
+
+        return assoc_1_2/counts_2
+
 
 
 
     def display_graph(self):
 
         array = self.assoc_obj["assoc_array"]
-        labels = self.assoc_obj["object_list"]
+        labels = self.assoc_obj["list_objects"]
 
         ax = sns.heatmap(array, annot=True)
         ax.set_xticklabels(labels)

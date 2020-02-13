@@ -5,7 +5,6 @@ import rospy
 import yaml
 
 import numpy as np
-import matplotlib.plot as plt
 import seaborn as sns
 
 
@@ -95,11 +94,15 @@ class ObjectAssoc(object):
         """
         r = rospkg.RosPack()
         filepath = r.get_path(pkg)
+        if filepath.startswith("/"):
+            pass
+        else:
+            filepath = "/" + filepath
         filepath = filepath + "/config/"        
 
         return filepath
 
-    def save_to_config(self, pkg, filename):
+    def save_to_config(self):
         """
         saves object's *dict_array_assoc* to specified pakcage config filder
 
@@ -111,10 +114,10 @@ class ObjectAssoc(object):
         filename: string
             name of config file to be used
         """
-        config_path = self.file_path_config(pkg) + "/config/"
-        self._save_dict_array_yaml(config_path + "filename", self.dict_array_assoc)
+        config_path = self.file_path_config(self.pkg_name)
+        self._save_dict_array_yaml(config_path + self.filename, self.dict_array_assoc)
 
-    def load_from_config(self, pkg, filename):
+    def load_from_config(self):
         """
         loads desired *dict_array_assoc* array to the object attribute
 
@@ -126,8 +129,8 @@ class ObjectAssoc(object):
         filename: string
             name of config file to be used
         """
-        config_path = self.file_path_config(pkg) + "/config/"
-        self._load_dict_array_yaml(config_path + filename)
+        config_path = self.file_path_config(self.pkg_name)
+        self.dict_array_assoc = self._load_dict_array_yaml(config_path + self.filename)
 
     def _yaml_extension(self, filename):
         """
@@ -167,7 +170,7 @@ class ObjectAssoc(object):
         filename = self._yaml_extension(filename)
 
         fp = open(filename)
-        data = yaml.load(fp)
+        data = yaml.full_load(fp)
         return data
 
     def _save_dict_array_yaml(self, filename, dict_array):
@@ -216,11 +219,11 @@ class ObjectAssoc(object):
         obj2: string
             second object
         """
-        index_obj1 = self._obj_index(obj1)
-        index_obj2 = self._obj_index(obj2)
+        index_obj1 = int(self._obj_index(obj1))
+        index_obj2 = int(self._obj_index(obj2))
 
-        self.dict_array_assoc["assoc_array"][index_obj1, index_obj2] += 1
-        self.dict_array_assoc["assoc_array"][index_obj2, index_obj1] += 1
+        self.dict_array_assoc["array"][index_obj1][index_obj2] += 1
+        self.dict_array_assoc["array"][index_obj2][index_obj1] += 1
 
     def sub_assoc(self, obj1, obj2):
         """
@@ -237,8 +240,8 @@ class ObjectAssoc(object):
         index_obj1 = self._obj_index(obj1)
         index_obj2 = self._obj_index(obj2)
 
-        self.dict_array_assoc["assoc_array"][index_obj1, index_obj2] -= 1
-        self.dict_array_assoc["assoc_array"][index_obj2, index_obj1] -= 1
+        self.dict_array_assoc["array"][index_obj1, index_obj2] -= 1
+        self.dict_array_assoc["array"][index_obj2, index_obj1] -= 1
 
 
     def conditional_assoc(self, obj1, obj2):
@@ -263,18 +266,30 @@ class ObjectAssoc(object):
         index_obj1 = self._obj_index(obj1)
         index_obj2 = self._obj_index(obj2)
 
-        assoc_1_2 = self.dict_array_assoc["assoc_array"][index_obj1, index_obj2]
+        assoc_1_2 = self.dict_array_assoc["array"][index_obj1, index_obj2]
 
-        counts_2 = np.sum(self.dict_array_assoc["assoc_array"][index_obj2])
+        counts_2 = np.sum(self.dict_array_assoc["array"][index_obj2])
 
         return assoc_1_2/counts_2
+
+    def check_assoc(self, obj1, obj2):
+
+        index_obj1 = self._obj_index(obj1)
+        index_obj2 = self._obj_index(obj2)
+
+        if self.dict_array_assoc["array"][index_obj1, index_obj2]:
+            return True
+        else:
+            return False
+            
+
 
 
 
 
     def display_graph(self):
 
-        array = self.assoc_obj["assoc_array"]
+        array = self.assoc_obj["array"]
         labels = self.assoc_obj["list_objects"]
 
         ax = sns.heatmap(array, annot=True)

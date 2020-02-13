@@ -1,0 +1,14 @@
+array:
+- - 0.0
+  - 1.0
+  - 0.0
+- - 1.0
+  - 0.0
+  - 0.0
+- - 0.0
+  - 0.0
+  - 0.0
+list_objects:
+- table
+- glass
+- coffee machine

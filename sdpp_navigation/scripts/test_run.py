@@ -8,7 +8,9 @@ import rospkg
 import matplotlib.pyplot as plt
 
 from nav_msgs.msg import OccupancyGrid
-from sdpp_navigation.grid_world import GridWorld, ValueIterationAlgo, ValueIterWeighting
+from sdpp_navigation.grid_world import GridWorld, ValueIterationAlgo
+
+from sdpp_navigation.ros_wrappers import ValueIterWeighting
 from sdpp_navigation.ros_wrappers import LoadMap
 
 
@@ -102,7 +104,7 @@ def load_and_build_vi():
 
     return ValueIterWeighting(static_map_dict=static_map_dict, **kwags_VIW)
 
-
+    
 
 if __name__ == '__main__':
 

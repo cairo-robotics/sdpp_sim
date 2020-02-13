@@ -2,11 +2,15 @@
 
 import collections
 import pickle
+import yaml
 import numpy as np
 from pprint import pprint, pformat
 import matplotlib.pyplot as plt
 
 import rospy
+
+from nav_msgs.srv import GetMap
+
 from nav_msgs.msg import Odometry
 from nav_msgs.msg import OccupancyGrid
 
@@ -159,7 +163,16 @@ class GridWorld(object):
 
 class ValueIterationAlgo(object):
     """
-    TODO (60) 2 Document class ValueIterationWeighting
+        Value iteration algorithm. Uses grid world object to instanciate grid word
+
+        keyword arguments
+        -----------------
+
+        world: GrirWorld
+        
+        discount_factor: float
+        
+        epsilon: float
 
     """
     def __init__(self, discount_factor, world, epsilon=0.001):
@@ -204,114 +217,50 @@ class ValueIterationAlgo(object):
     def __repr__(self): return self.__str__()
 
 
+class ValueIterationMapManager(object):
+    """
+        Manages the VI maps to allow for the rapid creation and design of the worlds
 
-# TODO (180) miscelanious level one work (will be found later)
-    
-# TODO (120) 2 miscelanious level 2 work
-
-class ValueIterationWeighting_multi(object):
-    """"
-    TODO (30)1 Brainstorm  implementation
-
-    TODO (30) 1 timed callback for map publish
-
-    TODO (40) 2 time logging of calculations
-
-    methods
-    -------
-
-    TODO (30) 1 new_agent(agent_name)
-
-    TODO (30) 1  kill_agent(agent_name)
-
-    TODO (30) 2 available_agents()
-
-    TODO (30) 1 spawn_valueiter_weight 
-
-
-    TODO (40) build_VI_World(
-        take from the VIW class
+        maps are stored in a dictionary with the goal loc being the key
 
     """
 
+    def __init__(self, ros_occupancy_grid, **config):
 
-class ValueIterWeighting(object):
-    """
-    does valueiteration weighting per agent
-    
-    TODO (45) 1 Document design VIW
+        self.ros_occupancy_grid = ros_occupancy_grid
+        self.goal_locs = None
+        self.dict_vi_maps = None
+        self.iter_max = 10000
+        self.epsilon = .001
+        self.gamma = 0.99
+        self.__dict__.update(config)
+        self.LoadMap_obj = LoadMap()
 
-    TODO (30) 1 Brainstorm 
-
-    TODO (40) 1 remove path mathcing callback
-
-   
-
-    keyword arguments
-    -----------------
-    
-
-    methods
-    -------
+        self.grid_world_map = self.LoadMap_obj.gridworld_format_data(self.ros_occupancy_grid)
 
 
+    def build_vi_map_set(self, list_goals):
+        
+        goal_vi_maps = []
+        for goal in list_goals:
+            goal_vi_maps.append(self.build_vi_map(goal))
+        
+        return goal_vi_maps
 
 
-    """
+    def build_vi_map(self, goal):
+        
+        gamma = 0.99
+        map_array = self.grid_world_map["array"]
+        world_bounds_cols = self.grid_world_map["world_bounds_cols"]
+        world_bounds_rows = self.grid_world_map["world_bounds_rows"]
 
-    def __init__(self, static_map_dict=None, pickle_file=None,  **kwags):
+        grid_world = GridWorld(map_array, world_bounds_cols, world_bounds_rows)
+        grid_world.add_reward_block(goal[0], goal[1])
+        algo = ValueIterationAlgo(self.gamma, grid_world, self.epsilon)
 
-        options = {
-            "goals_loc":    None,  # list of tuple pairs (x, y)
-            "epsilon":      0.0001,
-            "gamma":        0.99,
-            "iter_max":     100,
-            "plot":         None,
-            "buffer_size":  200,
-            "pub_map":      "/fuse_test"}  # list of strings
-
-        options.update(kwags)
-
-        self.__dict__.update(options)
-        self.test_sum = [0] * 2
-        self.likelihood_buffer = [collections.deque(maxlen=self.buffer_size), collections.deque(maxlen=self.buffer_size) ]
-        self.pub_map = rospy.Publisher(self.pub_map, OccupancyGrid, queue_size=1)
-
-
-        if pickle_file is not None:
-            self._unpickle_obj_dict(pickle_file)
-            return
-
-        if static_map_dict is None:
-            print("need static map to run algorithm")
-            return
-
-        self.static_map_dict = static_map_dict
-
-        if self.goals_loc is None:
-            print("No goals for ValueIterWeighting")
-            return
-
-        num_goals = len(self.goals_loc)
-        print("ValueIterWeighting started with %d goals" % num_goals)
-
-
-        map_array = static_map_dict["array"]
-        world_bounds_cols = static_map_dict["world_bounds_cols"]
-        world_bounds_rows = static_map_dict["world_bounds_rows"]
-
-        self.grid_worlds_array = []
-        self.algo_array = []
-        for goal in self.goals_loc:
-            grid_world = GridWorld(map_array, world_bounds_cols, world_bounds_rows)
-
-            grid_world.add_reward_block(goal[0], goal[1])
-
-            algo = ValueIterationAlgo(self.gamma, grid_world)
-
-            iter_cnt = 0
-
-            while True:
+        iter_cnt = 0
+        while True:
                 print('iteration {}'.format(iter_cnt).center(72, '-'))
 
                 for cell in grid_world:
@@ -325,97 +274,101 @@ class ValueIterWeighting(object):
                 algo.update_values(grid_world)
                 iter_cnt += 1
 
-            if self.plot is not None:
-                for type in self.plot:
-                    grid_world.plot_world(type)
+        
+        grid_world_array = grid_world.value_as_array()
 
-            self.grid_worlds_array.append(grid_world)
+        grid_world.plot_world()
+        return {"grid_world_array": grid_world_array.tolist(), 
+                "goal": goal,
+                "gamma": self.gamma,
+                "epsilon": self.epsilon,
+                "iterations": self.iter_max,
+                "world_bounds_cols": world_bounds_cols,
+                "world_bounds_rows": world_bounds_rows,
+                "resolution": self.grid_world_map["resolution"]}
+    
 
-
-    def bayesian_path_matching(self, agent):
-
-        sub_topic = agent + "/odom"
-        self.agent_subscriber = rospy.Subscriber(sub_topic, Odometry, self.bayes_callback)
-
-    def bayes_callback(self, msg):
-
-        x, y = msg.pose.pose.position.x, msg.pose.pose.position.y
-        x = int(x*20)
-        y = int(y*20)
-
-        #wtf why are my maps all flipped D:
-        map_0_cost = self.grid_worlds_array[0].cells[y][x].value
-        map_1_cost = self.grid_worlds_array[1].cells[y][x].value
-
-
-        self.likelihood_buffer[0].append(map_0_cost)
-        self.likelihood_buffer[1].append(map_1_cost)
-
-        likelihood_cost = [0, 0]
-        likelihood_cost[0] = sum(value for value in self.likelihood_buffer[0])
-        likelihood_cost[1] = sum(value for value in self.likelihood_buffer[1])
-
-        max_value = max(likelihood_cost)
-        index_max = likelihood_cost.index(max_value)
-        percent = (max_value + .1)/(sum(likelihood_cost)+.1) * 100
-
-        sum_cost = sum(likelihood_cost)+.1
-        likelihood_cost = np.asarray(likelihood_cost)
-        percent_array = np.add(likelihood_cost, 0.1)/sum_cost
-
-        print "likely goal: " + str(index_max) + " by: "+ str(percent) + " percent"
-
-        map_0 = self.grid_worlds_array[0].value_as_array()
-        map_1 = self.grid_worlds_array[1].value_as_array()
-
-        print percent_array
-
-        map_0 = map_0*percent_array[0]
-        map_1 = map_1*percent_array[1]
-
-        map_pub = np.add(map_0, map_1)
-
-        self.pub_map.publish(self.array_to_costmap(map_pub))
-
-
-    def array_to_costmap(self, array):
-
-        CostMap = OccupancyGrid()
-        CostMap.info.resolution = .05
-        CostMap.info.width = 200
-        CostMap.info.height = 200
-
-        new_range = 100
-
-        world_arr = array
-        world_arr_flat = np.asanyarray(world_arr).flatten()
-        max_value = np.amax(world_arr_flat)
-        min_value = np.amin(world_arr_flat)
-        old_range = max_value - min_value
-        world_arr_flat = world_arr_flat / (old_range / new_range)
-        world_arr_flat = world_arr_flat.astype(np.int8)
-        world_arr_flat = world_arr_flat.tolist()
-        map_tuple = tuple(world_arr_flat)
-        CostMap.data = map_tuple
-
-        return CostMap
-
-
-
-    def pickle_obj_dict(self, filename):
-        print("dumping pickle")
-        self.pub_map = None
-        pickle.dump(self.__dict__, open(filename, "wb"))
-        print("pickle dumped")
-
-    def _unpickle_obj_dict(self, filename):
-
-        print("pickle loading")
-        self.__dict__.update(pickle.load(open(filename, "rb")))
-        self.pub_map = rospy.Publisher(self.pub_map, OccupancyGrid, queue_size=1)
-        print("pickle loaded")
-
-
-    def spawn_goal_world(self, goal_loc):
+    def load_maps(self):
         pass
+        
+
+    def save_maps(self, list_vi_maps):
+
+        fp = open("test_vi_maps.yaml", "w")
+        yaml.dump(list_vi_maps, fp)
+        fp.close()
+
+
+class LoadMap(object):
+    def __init__(self, file_location=None):
+
+        self.static_odom_map = None
+
+        rospy.loginfo(rospy.get_name() + ": getting map from map server")
+        """
+        if file_location is None:
+            self.static_odom_map = self.load_from_static_map_srv()
+        else:
+            self.static_odom_map = self.load_from_file_location_map(file_location)
+        """
+
+    @staticmethod
+    def load_from_static_map_srv(srv_name='/static_map'):
+        rospy.wait_for_service(srv_name)
+        static_map_srv = rospy.ServiceProxy(srv_name, GetMap)
+
+        try:
+            static_odom_msg = static_map_srv().map
+            rospy.loginfo(rospy.get_name() + ": received static map")
+
+        except rospy.ServiceException as exc:
+            rospy.logerr(rospy.get_name() + ": unable to get static map" + str(exc))
+            return None
+
+        return static_odom_msg
+
+    @staticmethod
+    def load_from_file_location_map(file_location):
+
+        rospy.loginfo(rospy.get_name() + ": load map directly not finished")
+        im_frame = Image.open('block_room.png')
+        np_frame = np.array(im_frame)
+        np_frame = np_frame[:, :, 0]
+        np_frame = np.rot90(np_frame, 3)
+
+        return np_frame
+
+    def gridworld_format_data(self, odometry_map):
+
+        width = odometry_map.info.width
+        height = odometry_map.info.height
+        resolution = odometry_map.info.resolution
+
+        numpy_array = np.asarray(odometry_map.data)
+        numpy_array = numpy_array.reshape(width, height)
+
+        grid_world = {"array": numpy_array, 
+                      "world_bounds_rows": width, 
+                      "world_bounds_cols": height,
+                      "resolution": resolution}
+
+        return grid_world
+
+    def __str__(self):
+        return pformat(self.static_odom_map)
+   
+
+
+
+if __name__ == '__main__':
+
+    rospy.init_node("test_node")
+
+    data = LoadMap.load_from_file_location_map("narrow_3_goal_10x10.p")
+
+    print(data)
+
+
+
+
 

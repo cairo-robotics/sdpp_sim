@@ -18,12 +18,10 @@ from scipy.special import softmax
 
 class ValueIterationWeightingMulti(object):
     """"
-   
 
     methods
     -------
 
-  
     """
 
     def __init__(self, vi_maps=None, **configs):

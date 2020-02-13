@@ -31,4 +31,3 @@ if __name__ == '__main__':
         pub.publish(repub_map.map)
 
         print "test"
-

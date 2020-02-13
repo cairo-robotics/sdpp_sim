@@ -14,5 +14,6 @@ if __name__ == "__main__":
     rospack = rospkg.RosPack()
 
     path = rospack.get_path('sdpp_navigation')
+    path 
 
     test = VIWM()

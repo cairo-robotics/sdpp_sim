@@ -5,10 +5,11 @@ import collections
 import pickle
 import yaml
 import numpy as np
+import copy
 #from sdpp_navigation.value_iteration import ValueIterationAlgo
 from nav_msgs.msg import Odometry
 from nav_msgs.msg import OccupancyGrid
-
+from math import sqrt
 from scipy.special import softmax
 
 
@@ -27,17 +28,171 @@ class ValueIterationWeightingMulti(object):
     def __init__(self, vi_maps=None, **configs):
         
         self.pub_map = "/test_map"
-        self.agent_list = ["human_0", "human_1"]
+        self.agent_list = ["human_0"]
         self.VIW_config = {"buffer_size": 10
         }
 
         self.__dict__.update(configs)
-
+        self.curr_agent_pos = []
         self.vi_maps = vi_maps
         self.list_VIW_agents = []
+        self.list_agent_odom = []
+
         for agent in self.agent_list:
             self.list_VIW_agents.append(self.spawn_agent(agent))
+
+
+        self.setup_0(1)
+
+    def setup_0(self, pub_rate):
+        self.run_agents()
+
+        self.map_pub = rospy.Publisher(self.pub_map, OccupancyGrid, queue_size=10)
+
+        # TODO callback is broken fix it later?
+        #self.test = rospy.Timer(rospy.Duration(pub_rate), self.timed_callback)
+        while(True):
+            for agent in self.agent_list:
+                self.timed_callback(agent)
+                print("callback run")
+                rospy.sleep(1)
+
+
+    def timed_callback(self, agent):
+        list_soft_max, list_goals = self.get_softmax_lists()
+        
+        if len(list_soft_max) != 0:
+            max_index = np.argmax(list_soft_max)
+            vi_map_grid = self.vi_maps[max_index]["grid_world_array"]
+
+            occ_grid = ValueIterationWeighting.array_to_costmap(vi_map_grid)
+
+            agent_pose = self.get_pose_agent(agent)
+
+            
+            estimated_path = self.path_from_vi_map(self.vi_maps[max_index], 
+                                                   agent_pose)
+
+            array_mask = self.path_mask_grid(estimated_path, 
+                                             vi_map_grid,  
+                                             40)
+            
+            occ_grid = ValueIterationWeighting.array_to_costmap(array_mask)
+
+            self.map_pub.publish(occ_grid)
+
+            return occ_grid
     
+    def path_mask_grid(self, path, vi_map_grid, threshold_index):
+        vi_mask = copy.deepcopy(vi_map_grid)
+        numrows = len(vi_mask)
+        numcols = len(vi_mask[0])
+
+        for i in range(numcols):
+            for j in range(numrows):
+                vi_mask[i][j] *= self.in_threshold(path, 
+                                                  (i, j), 
+                                                  threshold_index)
+
+        return vi_mask
+
+
+    def in_threshold(self, path, index, threshold_index):
+
+        for path_index in path:
+            index_distance = self.euclid_distance(index, path_index)
+
+            if index_distance <= threshold_index:
+                return 1
+        
+        return 0
+
+    
+    def euclid_distance(self, pointA, pointB):
+        
+        distance = (pointA[0] - pointB[0])**2
+        distance += (pointA[1] - pointB[1])**2
+        distance = sqrt(distance)
+
+        return int(distance)
+
+    def path_from_vi_map(self, vi_map, pose):
+        resolution = vi_map["resolution"]
+        
+        grid_world_array = vi_map["grid_world_array"]
+
+        agent_map_index = self._loc_to_index(pose, resolution)
+        print(pose, agent_map_index)
+        index = agent_map_index
+        list_path = []
+        while True:
+
+            index, value = self.next_index(index, grid_world_array)
+            
+            prev_value = 0
+
+            if value >= 15000:
+                break
+
+            else:
+                prev_value = value
+                list_path.append(index)
+
+        
+        print(list_path)
+
+        return list_path
+
+    def next_index(self, index, grid_world_array):
+        """
+        returns next highest index value adjecent        
+        Parameters
+        ----------
+        pose : [type]
+            [description]
+        """
+        value = grid_world_array[index[0]][index[1]]
+
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                row = index[0] + i
+                col = index[1] + j
+
+                new_val = grid_world_array[row][col]
+
+                if new_val >= value:
+                    value = new_val
+                    max_index = [row, col]
+                
+        return max_index, value
+
+    def _loc_to_index(self, loc, resolution):
+        index_x = int(loc[0]/resolution)
+        index_y = int(loc[1]/resolution)
+
+        return (index_x, index_y)
+
+    def get_pose_agent(self, agent):
+
+        odom_msg = rospy.wait_for_message(agent+"/odom", Odometry)
+        
+        (x, y) = odom_msg.pose.pose.position.x, odom_msg.pose.pose.position.y
+        return (x, y)
+
+    
+    def get_softmax_lists(self):
+
+        list_soft_max = []
+        list_goals = []
+
+        for agent in self.list_VIW_agents:
+            list_soft_max = agent.list_softmax
+            list_goals = agent.list_goals
+            print(list_soft_max, list_goals)
+        
+        return list_soft_max, list_goals
+
+        
     def spawn_agent(self, agent_name):
         
         local_VIW_config = self.VIW_config.copy()
@@ -46,15 +201,9 @@ class ValueIterationWeightingMulti(object):
         return spawned_agent
 
 
-
     def run_agents(self):
         for viw_obj in self.list_VIW_agents:
             viw_obj.setup_0()
-
-
-    def test_function(self, test_value):
-        return True
-
 
 
 class ValueIterationWeighting(object):
@@ -92,6 +241,9 @@ class ValueIterationWeighting(object):
         self.samples = 0
         self.vi_maps = vi_maps
         self.__dict__.update(**config)
+
+        self.list_softmax = []
+        self.list_goals = []
 
         self.circ_buff_agnt_pos = collections.deque(maxlen = self.buffer_size)
 
@@ -169,7 +321,7 @@ class ValueIterationWeighting(object):
 
 
 
-
+    """
     def bayes_callback(self, msg):
 
         x, y = msg.pose.pose.position.x, msg.pose.pose.position.y
@@ -209,9 +361,9 @@ class ValueIterationWeighting(object):
         map_pub = np.add(map_0, map_1)
 
         self.pub_map.publish(self.array_to_costmap(map_pub))
-
-
-    def array_to_costmap(self, array):
+    """
+    @staticmethod
+    def array_to_costmap(array):
 
         CostMap = OccupancyGrid()
         CostMap.info.resolution = .05

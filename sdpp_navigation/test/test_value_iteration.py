@@ -24,9 +24,6 @@ class TestLoadMap(unittest.TestCase):
 
         self.LoadMap_obj.gridworld_format_data(ros_occupancy_grid_narrow_3_goal)
         
-        
-
-
 
 class TestValueIterationMapManager(unittest.TestCase):
     

@@ -1,7 +1,7 @@
 <launch>
     <arg name="open_rviz" value="true"/>
-    <arg name="map_file" default="$(find sdpp_gazebo)/config/maps/narrow_3_goal_10x10.yaml" />
-    <arg name="world" default="$(find sdpp_gazebo)/worlds/narrow_3_goal_10x10.world"/>
+    <arg name="map_file" default="$(find sdpp_gazebo)/config/maps/basic_5_goal_loc.yaml" />
+    <arg name="world" default="$(find sdpp_gazebo)/worlds/basic_5_goal_loc.world"/>
     <arg name="agent_0" value="true" />
     <arg name="agent_1" value="false" />
 

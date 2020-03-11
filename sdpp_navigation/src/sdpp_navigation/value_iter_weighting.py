@@ -6,6 +6,7 @@ import pickle
 import yaml
 import numpy as np
 import copy
+import time
 #from sdpp_navigation.value_iteration import ValueIterationAlgo
 from nav_msgs.msg import Odometry
 from nav_msgs.msg import OccupancyGrid
@@ -27,8 +28,11 @@ class ValueIterationWeightingMulti(object):
 
     def __init__(self, vi_maps=None, **configs):
         
-        self.pub_map = "/test_map"
+        self.pub_map = "/human_sdpp/move_base/global_costmap/costmap_injection_layer/costmap_injection"
         self.agent_list = ["human_0"]
+        self.agent_pose_dict = {}
+        for agent in self.agent_list:
+            self.agent_pose_dict[agent] = (0,0)
         self.VIW_config = {"buffer_size": 10
         }
 
@@ -49,47 +53,96 @@ class ValueIterationWeightingMulti(object):
 
         self.map_pub = rospy.Publisher(self.pub_map, OccupancyGrid, queue_size=10)
 
-        # TODO callback is broken fix it later?
-        #self.test = rospy.Timer(rospy.Duration(pub_rate), self.timed_callback)
+        for agent in self.agent_list:
+            rospy.Subscriber(agent + "/odom", Odometry, self.agent_odom_callback)
+
+            # TODO callback is broken fix it later?
+            #self.test = rospy.Timer(rospy.Duration(pub_rate), self.timed_callback)
+        curr_time = time.time()
+        prev_time = time.time()
         while(True):
             for agent in self.agent_list:
                 self.timed_callback(agent)
                 print("callback run")
-                rospy.sleep(1)
+                prev_time = curr_time
+                curr_time = time.time()
+                print("--- %s seconds ---" % (curr_time - prev_time))
+                print(self.agent_pose_dict)
+
+                #rospy.sleep(1)
+
+    def agent_odom_callback(self, odom):
+        full_string = odom.child_frame_id
+
+        agent_name = full_string.split("/")[0]
+
+        # do the ros world switch
+        x, y = odom.pose.pose.position.x, odom.pose.pose.position.y
+
+        self.agent_pose_dict[agent_name] = (y, x)
+
+        
 
 
     def timed_callback(self, agent):
         list_soft_max, list_goals = self.get_softmax_lists()
         
         if len(list_soft_max) != 0:
-            max_index = np.argmax(list_soft_max)
-            vi_map_grid = self.vi_maps[max_index]["grid_world_array"]
-
-            occ_grid = ValueIterationWeighting.array_to_costmap(vi_map_grid)
-
-            agent_pose = self.get_pose_agent(agent)
-
             
-            estimated_path = self.path_from_vi_map(self.vi_maps[max_index], 
-                                                   agent_pose)
+            list_array_costmap = []
 
-            array_mask = self.path_mask_grid(estimated_path, 
-                                             vi_map_grid,  
-                                             40)
+            for index, scale in enumerate(list_soft_max):
+
+                array_costmap = self.goal_costmap_path(self.agent_list[0], self.vi_maps[index])
+                array_costmap = np.multiply(array_costmap, scale)
+                list_array_costmap.append(array_costmap)
+
+
+
+            costmap_total = list_array_costmap[0]
+            for costmap in list_array_costmap[1::]:
+                costmap_total +=  costmap
             
-            occ_grid = ValueIterationWeighting.array_to_costmap(array_mask)
 
+
+            occ_grid = ValueIterationWeighting.array_to_costmap(costmap_total)
             self.map_pub.publish(occ_grid)
+            print(list_soft_max)
 
-            return occ_grid
+        return None
     
-    def path_mask_grid(self, path, vi_map_grid, threshold_index):
-        vi_mask = copy.deepcopy(vi_map_grid)
-        numrows = len(vi_mask)
-        numcols = len(vi_mask[0])
 
-        for i in range(numcols):
-            for j in range(numrows):
+    def goal_costmap_path(self, agent, dict_vi_map):
+
+
+        vi_map_grid = dict_vi_map["grid_world_array"]
+
+        #occ_grid = ValueIterationWeighting.array_to_costmap(vi_map_grid)
+
+        agent_pose = self.get_pose_agent(agent)
+
+        
+        estimated_path = self.path_from_vi_map(dict_vi_map, 
+                                            agent_pose)
+
+        array_costmap = self.path_mask_grid(estimated_path, 
+                                        vi_map_grid,  
+                                        10)
+        
+        #occ_grid = ValueIterationWeighting.array_to_costmap(array_mask)
+        
+        return array_costmap
+
+
+    def path_mask_grid(self, path, vi_map_grid, threshold_index):
+
+        rows, cols = len(vi_map_grid), len(vi_map_grid[0])
+        vi_mask = np.ones((rows, cols))
+        vi_mask = np.multiply(vi_mask, np.asarray(vi_map_grid))
+        
+
+        for i in range(cols):
+            for j in range(rows):
                 vi_mask[i][j] *= self.in_threshold(path, 
                                                   (i, j), 
                                                   threshold_index)
@@ -122,7 +175,7 @@ class ValueIterationWeightingMulti(object):
         grid_world_array = vi_map["grid_world_array"]
 
         agent_map_index = self._loc_to_index(pose, resolution)
-        print(pose, agent_map_index)
+        #print(pose, agent_map_index)
         index = agent_map_index
         list_path = []
         while True:
@@ -139,7 +192,7 @@ class ValueIterationWeightingMulti(object):
                 list_path.append(index)
 
         
-        print(list_path)
+        #print(list_path)
 
         return list_path
 
@@ -177,7 +230,7 @@ class ValueIterationWeightingMulti(object):
         odom_msg = rospy.wait_for_message(agent+"/odom", Odometry)
         
         (x, y) = odom_msg.pose.pose.position.x, odom_msg.pose.pose.position.y
-        return (x, y)
+        return (y, x)
 
     
     def get_softmax_lists(self):
@@ -277,8 +330,10 @@ class ValueIterationWeighting(object):
         list_goals = []
         #iterate through all goal maps and score them
         for dict_map in self.vi_maps:
+            
             likelihood = self.total_points_map_odom(dict_map, self.circ_buff_agnt_pos)
             goal_loc = dict_map["goal"]
+            print(goal_loc)
             list_likelihoods.append(likelihood)
             list_goals.append(goal_loc)
         list_softmax = self._softmax_likelihood_list(list_likelihoods)

@@ -9,7 +9,7 @@ cost_scaling_factor: 3.0
 
 map_type: costmap
 observation_sources: scan
-scan: {sensor_frame: human_agent/base_scan, data_type: LaserScan, topic: scan, marking: true, clearing: true}
+scan: {sensor_frame: scan, data_type: LaserScan, topic: scan, marking: true, clearing: true}
 
 
 plugins:

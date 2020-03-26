@@ -10,6 +10,8 @@ import numpy as np
 from nav_msgs.msg import Odometry
 from nav_msgs.msg import OccupancyGrid
 from scipy.special import softmax
+from scipy.stats import multivariate_normal
+
 
 class ValueIterationWeightingMulti(object):
     """"
@@ -70,7 +72,8 @@ class ValueIterationWeightingMulti(object):
             for index, scale in enumerate(list_softmax):
                 costmap_goal = self.costmap_goal(viw_agent, 
                                                   vi_maps[index],
-                                                  mask_threshold_index)
+                                                  mask_threshold_index,
+                                                  list_goal_locs[index])
 
                 costmap_goal = np.multiply(costmap_goal, scale)
                 list_goal_costmaps.append(costmap_goal)
@@ -91,22 +94,48 @@ class ValueIterationWeightingMulti(object):
             costmap_total +=  costmap
         return costmap_total
 
-    def costmap_goal(self, viw_agent, dict_vi_map, threshold_index):
+    def costmap_goal(self, viw_agent, dict_vi_map, threshold_index, goal_loc):
         vi_map = dict_vi_map["grid_world_array"]
         agent_pose = self.get_pose_agent(viw_agent.agent)
         estimated_path = self.path_from_vi_map(dict_vi_map, agent_pose)
         path_mask = self.path_mask_grid_new(estimated_path, 
                                             vi_map,  
                                             threshold_index)
+        
+        
         #TODO create new costmap from mask
-        costmap = np.multiply(path_mask, vi_map)
+        agent_pose_index = self._loc_to_index(agent_pose, 
+                                              dict_vi_map["resolution"],)
+        costmap = self.pose_spread_gaussian(agent_pose_index, path_mask, 
+                                            goal_loc)
+        #costmap = np.multiply(path_mask, vi_map)
         return costmap
+
+    def pose_spread_gaussian(self, agent_pose_index, path_mask, goal_loc):
+
+        cov_pose = [[500, 0], [0, 500]]
+        cov_goal = [[200, 0], [0, 200]]
+        x, y = np.mgrid[0:200:1, 0:200:1]
+        pos = np.dstack((x, y))
+
+        var_pose = multivariate_normal(agent_pose_index, cov_pose)
+        var_goal = multivariate_normal(goal_loc, cov_goal)
+
+
+        gaussian_cost = np.add(var_pose.pdf(pos), var_goal.pdf(pos))
+        costmap = np.multiply(path_mask, gaussian_cost)
+        return costmap
+
 
     def path_mask_grid_new(self, path, vi_map_grid, threshold_index):
         rows, cols = len(vi_map_grid), len(vi_map_grid[0])
         vi_mask = np.zeros((rows, cols))
-        for point in path:
-            edge_points = self.calc_edge_of_circle(point, threshold_index)
+        dist_scale = len(path)/10
+
+        for index, point in enumerate(path):
+            radius = threshold_index + (index/dist_scale)
+
+            edge_points = self.calc_edge_of_circle(point, radius)
             for edge  in edge_points:
                 vi_mask[edge[0], edge[1]] = 1
         return vi_mask
@@ -128,6 +157,7 @@ class ValueIterationWeightingMulti(object):
 
         resolution = dict_vi_map["resolution"]
         grid_world_array = dict_vi_map["grid_world_array"]
+        max_value = np.asarray(grid_world_array).max()
         agent_map_index = self._loc_to_index(pose, resolution)
         index = agent_map_index
         list_path = []
@@ -135,7 +165,7 @@ class ValueIterationWeightingMulti(object):
             index, value = self.next_index(index, grid_world_array)
             prev_value = 0
             #TODO fix the end point issue
-            if value >= 15000:
+            if value >= (max_value - 100):
                 break
             else:
                 prev_value = value

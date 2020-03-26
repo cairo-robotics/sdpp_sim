@@ -1,6 +1,0 @@
-<launch>
-    <rosparam command="load" file="$(find sdpp_devel)/config/objects_slim_coco.yaml"/>
-
-    <node pkg="sdpp_devel" type="association_test.py" name="test_association" >
-    </node>
-</launch>

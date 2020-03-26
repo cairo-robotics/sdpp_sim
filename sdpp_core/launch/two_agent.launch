@@ -1,0 +1,59 @@
+<launch>
+    <arg name="open_rviz" value="true"/>
+    <arg name="map_file" default="$(find sdpp_gazebo)/config/maps/narrow_3_goal_10x10.yaml" />
+    <arg name="world" default="$(find sdpp_gazebo)/worlds/narrow_3_goal_10x10.world"/>
+    <arg name="agent_0" value="true" />
+    <arg name="agent_1" value="false" />
+    <arg name="agent_sdpp" value="false" />
+
+
+    
+    <!-- dummy global map -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+
+
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="world_name" value="$(arg world)"/>
+      <arg name="paused" value="false"/>
+      <arg name="use_sim_time" value="true"/>
+      <arg name="gui" value="true"/>
+      <arg name="headless" value="false"/>
+      <arg name="debug" value="false"/>
+    </include>
+
+    <group ns="human_0" if="$(arg agent_0)">
+        <include file="$(find sdpp_human_navigation)/launch/human_multi.launch">
+            <arg name="multi_bot" value="human_0"/>
+            <arg name="x_pos" value="9.0"/>
+            <arg name="y_pos" value="5.0"/>
+        </include>
+    </group>
+
+    <group ns="human_1" if="$(arg agent_1)">
+        <include file="$(find sdpp_human_navigation)/launch/human_multi.launch">
+            <arg name="multi_bot" value="human_1"/>
+            <arg name="x_pos" value="9.0"/>
+            <arg name="y_pos" value="5.0"/>
+        </include>
+    </group>
+
+    <group ns="human_sdpp" if="$(arg agent_sdpp)">
+        <include file="$(find sdpp_human_navigation)/launch/human_multi.launch">
+            <arg name="param_folder" value="human_sdpp"/>
+            <arg name="multi_bot" value="human_sdpp"/>
+            <arg name="x_pos" value="9.0"/>
+            <arg name="y_pos" value="9.0"/>
+        </include>
+    </group>
+    
+    <!-- testing framework specifics -->
+    <rosparam command="load" file="$(find sdpp_testing_fw)/config/agent_waypoints/set_1.yaml"/>
+    <rosparam command="load" file="$(find sdpp_gazebo)/config/maps/narrow_3_goal_loc.yaml"/>
+
+    <!--node pkg="sdpp_testing_fw" type="record_movement.py" name="recording_node"/-->
+
+
+    <group if="$(arg open_rviz)">
+        <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find sdpp_core)/rviz/test_rviz.rviz"/>
+    </group>
+</launch>

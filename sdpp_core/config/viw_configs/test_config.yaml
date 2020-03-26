@@ -1,0 +1,4 @@
+
+# list of agents to run VIW on
+agent_list: 
+  - "human_0"

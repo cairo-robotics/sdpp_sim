@@ -1,0 +1,6 @@
+<launch>
+
+    <rosparam command="load" file="$(find sdpp_devel)/config/objects_slim_coco.yaml" />
+
+
+</launch>   

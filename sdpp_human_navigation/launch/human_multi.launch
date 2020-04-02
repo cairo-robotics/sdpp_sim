@@ -29,10 +29,11 @@
         <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
         <rosparam file="$(find sdpp_human_navigation)/param/$(arg param_folder)/costmap_common_params.yaml" command="load" ns="global_costmap" />
         <rosparam file="$(find sdpp_human_navigation)/param/$(arg param_folder)/costmap_common_params.yaml" command="load" ns="local_costmap" />
-        <rosparam file="$(find sdpp_human_navigation)/param/$(arg param_folder)/local_costmap_params.yaml" command="load" />
-        <rosparam file="$(find sdpp_human_navigation)/param/$(arg param_folder)/global_costmap_params.yaml" command="load" />
+        <rosparam file="$(find sdpp_human_navigation)/param/$(arg param_folder)/local_costmap_params.yaml" command="load"/>
+        <rosparam file="$(find sdpp_human_navigation)/param/$(arg param_folder)/global_costmap_params.yaml" command="load"/>
         <rosparam file="$(find sdpp_human_navigation)/param/$(arg param_folder)/move_base_params.yaml" command="load" />
         <rosparam file="$(find sdpp_human_navigation)/param/$(arg param_folder)/dwa_local_planner_params.yaml" command="load" />
+        
         <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
 
         <!-- where to find static map, override namespacing -->

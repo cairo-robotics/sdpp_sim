@@ -5,6 +5,14 @@ global_costmap:
   update_frequency: 10.0
   publish_frequency: 10.0
   transform_tolerance: 0.5
+  
+  plugins:
+    - {name: static_map, type: "costmap_2d::StaticLayer"}
+    - {name: obstacles,  type: "costmap_2d::ObstacleLayer"}
+    - {name: costmap_injection_layer, type: "costmap_injection_namespace::CostmapInjectionLayer", output: "screen"}
+    - {name: inflation,  type: "costmap_2d::InflationLayer"}
 
-  static_map: true
- 
+  obstacles:
+    observation_sources: scan
+    scan: {data_type: LaserScan, topic: scan, marking: true, clearing: true}
+

@@ -1,0 +1,7 @@
+<class_libraries>
+  <library path="lib/libcostmap_injection_layer">
+    <class type="costmap_injection_namespace::CostmapInjectionLayer" base_class_type="costmap_2d::Layer">
+      <description>allows the injection of costmaps into graph_2d</description>
+    </class>
+  </library>
+</class_libraries>

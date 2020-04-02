@@ -1,17 +1,8 @@
-obstacle_range: 3.0
-raytrace_range: 3.5
+obstacle_range: 5.5
+raytrace_range: 6.0
 
 footprint: [[-0.205, -0.155], [-0.205, 0.155], [0.077, 0.155], [0.077, -0.155]]
 
 inflation_radius: 1.0
 cost_scaling_factor: 3.0
-
-plugins:
-  - {name: obstacles, type: "costmap_2d::VoxelLayer"}
-
-map_type: costmap
-obstacles:
-  observation_sources: laser_scan_sensor
-  laser_scan_sensor: {data_type: LaserScan, topic: human_0/scan, marking: true, clearing: false}
-
  

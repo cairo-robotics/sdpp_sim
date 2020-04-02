@@ -1,8 +1,0 @@
-<launch>
-
-    <rosparam command="load" file="$(find sdpp_testing_fw)/config/agent_waypoints/set_1.yaml"/>
-
-    <node pkg="sdpp_testing_fw" type="move_script.py" name="test_move_client" />
-
-
-</launch>

@@ -52,6 +52,7 @@ void CostmapInjectionLayer::costmapCallback(const nav_msgs::OccupancyGrid::Const
     //for(std::vector<signed char>::iterator it = grid.data.begin(); it != grid.data.end(); it++)
     //    std::cout << ' ' << *it;
 
+   
 
     ROS_INFO("%s", message->header.frame_id.c_str());
 }
@@ -97,17 +98,23 @@ void CostmapInjectionLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int 
    if( grid.data.size() == 0)
     return;
 
+  double max = *std::max_element(grid.data.begin(), grid.data.end());
 
   for (int j = min_j; j < max_j; j++)
   {
     for (int i = min_i; i < max_i; i++)
     {
-      int index = getIndex(i, j);
+      //int index = getIndex(i, j);
+      int index = j * 200 + i;
       if (grid.data[index] == NO_INFORMATION)
         continue;
+      if(grid.data[index] >= max)
+        max = grid.data[index];
 
       //std::cout << grid.header << std::endl;
-      master_grid.setCost(i, j, grid.data[index]);
+      unsigned char curr_cost = master_grid.getCost(i, j);
+      curr_cost = curr_cost + grid.data[index];
+      master_grid.setCost(i, j, curr_cost);
     }
   }
 }

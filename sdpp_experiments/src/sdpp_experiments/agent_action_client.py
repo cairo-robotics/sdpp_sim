@@ -19,7 +19,7 @@ class AgentActionClient(object):
     frame_id: string
         frame that movement actions are to be published in
 
-    action_client_topic: string
+    client_topic: string
         topic name for agent's action client
 
     quaternion: list
@@ -30,19 +30,19 @@ class AgentActionClient(object):
     
     """
 
-    def __init__(self, **kwags):
+    def __init__(self, frame_id="human_0/odom", points=[],
+                 client_topic="human_0/move_base",):
 
-        self.frame_id = "human_sdpp/odom"
-        self.action_client_topic = "human_sdpp/move_base",
-        self.quaternion =  [0, 0, 0, 1]
-        self.points = []
+        self.frame_id = frame_id
+        self.client_topic = client_topic
+        self.points = points
     
-        self.__dict__.update(kwags)
-     
+
+        self.quaternion =  [0, 0, 0, 1]
         self.iterator = 0
         self.max_iterator = len(self.points) -1
 
-        self.move_base_client = actionlib.SimpleActionClient(self.action_client_topic, MoveBaseAction)
+        self.move_base_client = actionlib.SimpleActionClient(self.client_topic, MoveBaseAction)
         rospy.loginfo("Waiting for move_base action server...movo_move_base")
 
         """
@@ -63,12 +63,12 @@ class AgentActionClient(object):
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = self.frame_id
         goal.target_pose.pose = pose
-        self.move_base_client.send_goal(goal, self.done_cb, self.active_cb, self.feedback_cb)
+        self.move_base_client.send_goal(goal, self.done_cb, self.active_cb, 
+                                        self.feedback_cb)
 
     def next_pose(self):
 
         next_point = self.points[self.iterator]
-
         next_pose = self.pose_msg(next_point, self.quaternion)
         self.pub_pose(next_pose)
 
@@ -78,14 +78,14 @@ class AgentActionClient(object):
             self.iterator += 1
 
     def active_cb(self):
-        rospy.loginfo("running goal")
+        #rospy.loginfo("running goal")
+        pass
 
     def feedback_cb(self, feedback):
-        rospy.loginfo("executing move pose")
+        #rospy.loginfo("executing move pose")
+        pass
 
     def done_cb(self, status, result):
-
-        print(result)
 
         if status == 2:
             rospy.loginfo("goal pose has been preempted")
@@ -106,7 +106,6 @@ class AgentActionClient(object):
         else:
             rospy.loginfo(result)
 
-
     def move_lookat(self, move, lookat):
         """
         Move and look at a point all numpy vectors
@@ -118,7 +117,6 @@ class AgentActionClient(object):
         quat = self.vec_to_quat_2D(vec)
         pose = self.pose_msg(move, quat)
         self.pub_pose(pose)
-
 
     def norm_vec_from_2_points(self, pnt_a, pnt_b):
         """
@@ -163,3 +161,6 @@ class AgentActionClient(object):
         pose.position.z = point[2]
 
         return pose
+    
+    def _shutdown(self):
+        pass

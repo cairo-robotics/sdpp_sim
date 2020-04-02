@@ -15,6 +15,42 @@ from nav_msgs.msg import Odometry
 from nav_msgs.msg import OccupancyGrid
 
 
+import copy
+
+
+
+class ValueIteration(object):
+
+    def __init__(self, state_space, goal, gamma=0.01, epsilon=0.001):
+        
+        self.gamma = gamma
+        self.epsilon = epsilon
+
+
+        
+        vp, ss = self.state_space_to_vi_space(state_space, goal)
+        self.vp = vp  #value policy
+        self.ss = ss
+
+    def state_space_to_vi_space(self, state_space, goal):
+        
+        rows, cols = state_space.shape
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class Cell(object):
     def __init__(self):
@@ -32,10 +68,6 @@ class Cell(object):
 
 
 class GridWorld(object):
-
-    """
-        TODO (60) 2 Document Grid world implementation
-    """
 
     def __init__(self, static_map, world_bounds_cols, world_bounds_rows):
 
@@ -61,8 +93,10 @@ class GridWorld(object):
                     cell.blocks = True
 
                 else:
+                    cell.value_prev = value
                     cell.value = value
                     cell.reward = value
+                    cell.is_terminal = True
 
                 cells[row_idx].append(cell)
             assert len(cells[row_idx]) == self.world_bounds_cols
@@ -74,7 +108,7 @@ class GridWorld(object):
             for cell in row:
                 yield cell
 
-    def add_reward_block(self, x, y, size=5, reward=255):
+    def add_reward_block(self, x, y, size=1, reward=1000):
 
         offset = int(size/2.0)
 
@@ -87,6 +121,7 @@ class GridWorld(object):
     def add_reward(self, x, y, reward = 255):
         self.cells[x][y].reward = reward
         self.cells[x][y].value = reward
+        self.cells[x][y].is_terminal = True
 
     def north(self, cell):
         row = cell.row; col = cell.col
@@ -175,8 +210,8 @@ class ValueIterationAlgo(object):
         epsilon: float
 
     """
-    def __init__(self, discount_factor, world, epsilon=0.001):
-        self.discount_factor = discount_factor
+    def __init__(self, gamma, world, epsilon=0.001):
+        self.gamma = gamma
         self.world = world
         self.epsilon = epsilon
 
@@ -185,18 +220,36 @@ class ValueIterationAlgo(object):
             return
         max_pv = 0 # probability * value, as used in V(s) calculation
         # Moves in NSEW order
+
+        moves_pvs = [self.world.north(state).value_prev,
+                     self.world.south(state).value_prev,
+                     self.world.east(state).value_prev,
+                     self.world.west(state).value_prev]
+
+        """
         moves_pvs = [
-            0.8*self.world.north(state).value_prev + 0.1*self.world.west(state).value_prev + 0.1*self.world.east(state).value_prev,
-            0.8*self.world.south(state).value_prev + 0.1*self.world.west(state).value_prev + 0.1*self.world.east(state).value_prev,
-            0.8*self.world.east(state).value_prev + 0.1*self.world.north(state).value_prev + 0.1*self.world.south(state).value_prev,
-            0.8*self.world.west(state).value_prev + 0.1*self.world.north(state).value_prev + 0.1*self.world.south(state).value_prev
-        ]
+            0.8*self.world.north(state).value_prev + 
+            0.1*self.world.west(state).value_prev + 
+            0.1*self.world.east(state).value_prev,
+
+            0.8*self.world.south(state).value_prev + 
+            0.1*self.world.west(state).value_prev + 
+            0.1*self.world.east(state).value_prev,
+
+            0.8*self.world.east(state).value_prev + 
+            0.1*self.world.north(state).value_prev + 
+            0.1*self.world.south(state).value_prev,
+
+            0.8*self.world.west(state).value_prev + 
+            0.1*self.world.north(state).value_prev + 
+            0.1*self.world.south(state).value_prev
+        ]"""
 
         moves_directions = ['north', 'south', 'east', 'west']
         max_idx = np.argmax(moves_pvs)
         max_pv = moves_pvs[max_idx]
         policy = moves_directions[max_idx]
-        state.value = self.discount_factor * max_pv + state.reward
+        state.value = self.gamma * max_pv + state.reward
         state.policy = policy
 
     def update_values(self, world):
@@ -219,38 +272,32 @@ class ValueIterationAlgo(object):
 
 class ValueIterationMapManager(object):
     """
-        Manages the VI maps to allow for the rapid creation and design of the worlds
+        Manages the VI maps to allow for the rapid creation and design of the 
+        worlds
 
         maps are stored in a dictionary with the goal loc being the key
-
     """
 
-    def __init__(self, ros_occupancy_grid, **config):
-
+    def __init__(self, ros_occupancy_grid, iter_max=10000, epsilon=0.0001, gamma=0.99,
+                 goal_locs =None):
         self.ros_occupancy_grid = ros_occupancy_grid
-        self.goal_locs = None
-        self.dict_vi_maps = None
-        self.iter_max = 10000
-        self.epsilon = .001
-        self.gamma = 0.99
-        self.__dict__.update(config)
+        self.iter_max = iter_max
+        self.epsilon = epsilon
+        self.gamma = gamma
+        self.goal_locs = goal_locs
+
         self.LoadMap_obj = LoadMap()
-
-        self.grid_world_map = self.LoadMap_obj.gridworld_format_data(self.ros_occupancy_grid)
-
+        self.grid_world_map = self.gridworld_format_data(self.ros_occupancy_grid)
 
     def build_vi_map_set(self, list_goals):
         
         goal_vi_maps = []
         for goal in list_goals:
             goal_vi_maps.append(self.build_vi_map(goal))
-        
         return goal_vi_maps
-
 
     def build_vi_map(self, goal):
         
-        gamma = 0.99
         map_array = self.grid_world_map["array"]
         world_bounds_cols = self.grid_world_map["world_bounds_cols"]
         world_bounds_rows = self.grid_world_map["world_bounds_rows"]
@@ -269,15 +316,18 @@ class ValueIterationMapManager(object):
                 if iter_cnt >= self.iter_max:
                     break
                 if algo.done():
+                    pass
                     break
 
                 algo.update_values(grid_world)
                 iter_cnt += 1
-
+                
         
         grid_world_array = grid_world.value_as_array()
+        
+        #print(grid_world)
 
-        grid_world.plot_world()
+        #grid_world.plot_world()
         return {"grid_world_array": grid_world_array.tolist(), 
                 "goal": goal,
                 "gamma": self.gamma,
@@ -287,6 +337,22 @@ class ValueIterationMapManager(object):
                 "world_bounds_rows": world_bounds_rows,
                 "resolution": self.grid_world_map["resolution"]}
     
+    
+    def gridworld_format_data(self, odometry_map):
+
+        width = odometry_map.info.width
+        height = odometry_map.info.height
+        resolution = odometry_map.info.resolution
+
+        numpy_array = np.asarray(odometry_map.data)
+        numpy_array = numpy_array.reshape(width, height)
+
+        grid_world = {"array": numpy_array, 
+                      "world_bounds_rows": width, 
+                      "world_bounds_cols": height,
+                      "resolution": resolution}
+
+        return grid_world
 
     def load_maps(self):
         pass
@@ -322,7 +388,8 @@ class LoadMap(object):
             rospy.loginfo(rospy.get_name() + ": received static map")
 
         except rospy.ServiceException as exc:
-            rospy.logerr(rospy.get_name() + ": unable to get static map" + str(exc))
+            rospy.logerr(rospy.get_name() + ": unable to get static map" 
+                        + str(exc))
             return None
 
         return static_odom_msg
@@ -338,21 +405,7 @@ class LoadMap(object):
 
         return np_frame
 
-    def gridworld_format_data(self, odometry_map):
-
-        width = odometry_map.info.width
-        height = odometry_map.info.height
-        resolution = odometry_map.info.resolution
-
-        numpy_array = np.asarray(odometry_map.data)
-        numpy_array = numpy_array.reshape(width, height)
-
-        grid_world = {"array": numpy_array, 
-                      "world_bounds_rows": width, 
-                      "world_bounds_cols": height,
-                      "resolution": resolution}
-
-        return grid_world
+ 
 
     def __str__(self):
         return pformat(self.static_odom_map)
